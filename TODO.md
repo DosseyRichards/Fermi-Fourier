@@ -83,6 +83,41 @@ Things noticed while writing that should be filled in.
   `init_calldata`. Codegen jumps to `_deploy_stop` after a parameterized
   init body so the dispatcher does not misread param bytes as a
   selector. See `tests/test_fourier_init.py`.
+- ~~No string literals~~ — **resolved**. `"hello"` desugars to a
+  256-bit uint: the UTF-8 bytes right-padded with zeros to 32 bytes,
+  big-endian (Solidity `bytes32("...")` packing). Max 32 bytes, no
+  escapes. See `tests/test_fourier_strings.py`.
+- ~~No library-call sugar (delegatecall ergonomics)~~ — **resolved**.
+  `lib_call(addr, sel, args..., gas)` desugars to
+  `pack_sel` + `delegatecall_b` + auto-revert-on-failure + return-word
+  load. See `tests/test_fourier_lib_call.py`. A full `library Foo { ... }`
+  block syntax with selector-by-name resolution is still desirable;
+  this builtin is the minimal v1 step.
+- ~~No multi-contract source files~~ — **resolved**. A `.fou` may
+  declare multiple top-level `contract` blocks. Use
+  `compile_source(src, name=...)` to pick one, or
+  `compile_source_all(src)` to compile every contract in the file.
+  Single-contract sources are unchanged. See
+  `tests/test_fourier_multi_contract.py`.
+- ~~No optimizer~~ — **partially resolved**. Peephole pass infrastructure
+  ships in `fourier/optimizer.py` and runs by default via
+  `compile_contract(..., optimize=True)`. Current folds:
+  `PUSH/POP` pairs, `PUSH 0 / ADD|SUB|OR|XOR`, `PUSH 1 / MUL`. Bench
+  on the real example + stdlib contracts (`scripts/bench_fourier.py`)
+  shows **0% size and 0% gas reduction** — the existing codegen does
+  not emit these redundant patterns on production-shaped contracts. The
+  infrastructure is in place; richer folds (DUP/SWAP scheduling,
+  dead-store elimination, common subexpression) will require more
+  analysis-heavy passes. See `tests/test_fourier_optimizer.py` for the
+  fold-correctness suite.
+- ~~No fixed-point math~~ — **resolved as Q64.64**. Builtins
+  `from_int`, `to_int`, `fmul`, `fdiv` operate on `uint` values
+  interpreted as Q64.64 (scale = 2**64, so `1.0` = `2**64`,
+  `0.5` = `2**63`). ADD / SUB use plain `+` / `-` (no scaling).
+  Q128.128 was the original recommendation but multiply overflows for
+  any value ≥ 1.0; Q64.64 keeps values up to ~2**64 (≈ 1.8e19) safe
+  for multiply, well above any financial range. See
+  `tests/test_fourier_fixed.py`.
 
 ### Stubbed pages
 

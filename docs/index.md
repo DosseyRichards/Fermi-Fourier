@@ -14,7 +14,7 @@ emits stack-VM bytecode that runs on the
 
 One source file, one contract. One parser pass, one codegen pass, no
 optimizer. Every storage slot is explicit. Every call semantics is
-explicit. Selectors are one byte. Strings, floats, inheritance, generics
+explicit. Selectors are one byte. Floats, inheritance, generics
 are intentionally absent in v1.
 
 [Quick reference :material-arrow-right:](quick-reference.md){ .md-button .md-button--primary }
@@ -108,9 +108,25 @@ are intentionally absent in v1.
 - No inheritance, traits, or interfaces. Copy declarations from
   [stdlib contracts](stdlib/index.md) into your contract, or call them
   via address.
-- No string literals. Use `uint` hashes.
-- No floating point.
-- No multi-contract source files. One `contract` per `.fou`.
-- No optimizer. Each statement compiles to a fixed bytecode template.
-- No constructor parameters. `init()` takes no args, runs once, no
-  return value (gated by the flag at slot `2**256 - 1`).
+- No IEEE 754 floating point. Use the Q64.64 fixed-point builtins
+  (`from_int`, `to_int`, `fmul`, `fdiv`) — see
+  [expressions / fixed-point math](language/expressions.md#fixed-point-math-q6464).
+
+Supported as of v1:
+
+- **String literals** (`"hello"`) — desugar to a right-padded `uint`.
+  See [types](language/types.md#string-literals).
+- **`init` constructor parameters** — unpacked from the deploy tx's
+  `init_calldata`. See [contracts](language/contracts.md#init).
+- **`lib_call`** — DELEGATECALL library-call sugar. See
+  [cross-contract / lib_call](language/cross-contract.md#lib_call-library-delegatecall-sugar).
+- **Multi-contract source files** — a `.fou` may declare multiple
+  `contract` blocks. Use `compile_source_all(src)` for all bytecodes or
+  `compile_source(src, name="...")` for one. See
+  [compiler / Python API](compiler/python.md).
+- **Fixed-point math (Q64.64)** — `from_int`, `to_int`, `fmul`, `fdiv`
+  builtins for scaled decimal arithmetic on plain `uint` values. See
+  [expressions](language/expressions.md#fixed-point-math-q6464).
+- **Peephole optimizer** — runs by default. Current folds eliminate
+  trivial `PUSH/POP` and identity-arithmetic patterns. Run
+  `python3 scripts/bench_fourier.py` to measure on your contracts.

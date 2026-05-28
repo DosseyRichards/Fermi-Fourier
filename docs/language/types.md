@@ -71,10 +71,43 @@ A tuple literal in any other expression position raises `CompileError`
 Tuple destructuring requires a literal tuple RHS in v1 — you cannot
 destructure a cross-contract call's return.
 
+## String literals
+
+String literals — `"hello"`, `"alice"`, `""` — are syntactic sugar for
+a 256-bit `uint`: the UTF-8 bytes right-padded with zeros to 32 bytes
+and interpreted big-endian. Same packing as Solidity's
+`bytes32("...")`.
+
+```fourier
+storage name: uint @ 0;
+
+pub fn set() {
+    name = "alice";                              // = 0x616c696365000...0
+}
+
+pub fn check(n: uint) -> bool {
+    return n == "alice";                         // compare 32-byte form
+}
+
+pub fn h() -> uint {
+    return sha3("hello");                        // hashes "hello\0\0...\0"
+}
+```
+
+Rules:
+
+- UTF-8 encoded source bytes.
+- Max 32 bytes — longer literals are a lex error.
+- No escape sequences in v1 (no `\"`, no `\\`, no `\n`).
+- No newlines inside a literal.
+- The empty string `""` is `0`.
+
+Strings are typed as `uint` after parsing — there is no separate
+`string` or `bytes32` type; they all collapse to `uint` in the
+expression layer.
+
 ## What's NOT supported
 
-- **No string literals.** Use a `uint` hash (`sha3("...")` at the
-  client, embed the constant).
 - **No floating point.** Compute fixed-point manually with
   appropriate shift constants.
 - **No signed integers.** All comparisons are unsigned; no SDIV/SMOD.

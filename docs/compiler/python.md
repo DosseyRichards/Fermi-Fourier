@@ -8,7 +8,7 @@ the underlying lex / parse / codegen entry points.
 ```python
 from fourier import compile_source
 
-def compile_source(source: str) -> bytes
+def compile_source(source: str, name: str | None = None) -> bytes
 ```
 
 The full pipeline: lex → parse → codegen → assemble. Returns the raw
@@ -26,6 +26,30 @@ contract Counter {
 bytecode = compile_source(src)
 print(len(bytecode), "bytes")
 # 200 bytes (approximate)
+```
+
+### Multi-contract sources
+
+A source file may declare multiple top-level `contract` blocks. To
+pick which one `compile_source` returns, pass `name=`:
+
+```python
+src = '''
+contract Math   { pub fn add(a: uint, b: uint) -> uint { return a + b; } }
+contract String { pub fn len(s: uint) -> uint { return 0; } }
+'''
+bc_math   = compile_source(src, name="Math")
+bc_string = compile_source(src, name="String")
+```
+
+Without `name=`, a multi-contract source raises `ValueError`. For all
+bytecodes at once, use `compile_source_all`:
+
+```python
+from fourier import compile_source_all
+
+result = compile_source_all(src)
+# {'Math': b'...', 'String': b'...'}
 ```
 
 Raises:
@@ -62,10 +86,12 @@ for t in tokens:
 # ...
 ```
 
-### `parse(tokens) -> Contract`
+### `parse(tokens) -> Contract | list[Contract]`
 
-Recursive-descent parser. Returns a `Contract` AST node — see
-`fourier/ast_nodes.py` for the dataclass shapes.
+Recursive-descent parser. Returns a `Contract` AST node for a single-
+contract source, or a `list[Contract]` for multi-contract sources —
+see `fourier/ast_nodes.py` for the dataclass shapes. The companion
+`parse_all(tokens) -> list[Contract]` always returns a list.
 
 ```python
 ast = parse(tokens)

@@ -94,6 +94,78 @@ require(ok == 1);
 // callee's return word sits at memory 0x40 but Fourier has no MLOAD primitive
 ```
 
+## `lib_call` — library DELEGATECALL sugar
+
+```fourier
+lib_call(lib_addr: address, selector: uint, arg1: T1, ..., argN: TN, gas: uint) -> uint
+```
+
+The high-level form of "call a library via DELEGATECALL". One
+builtin captures the four-line `pack_sel` + `delegatecall_b` +
+`require(ok)` + `MLOAD(RETURN_AT)` pattern that you would otherwise
+spell out by hand:
+
+```fourier
+let result: uint = lib_call(lib_addr, 0x01, a, b, 100_000);
+```
+
+is equivalent to:
+
+```fourier
+let cd: bytes = pack_sel(0x01, a, b);
+let ok: uint  = delegatecall_b(lib_addr, cd, 100_000);
+require(ok == 1);
+let result: uint = /* the 32-byte word at RETURN_AT — Fourier has no MLOAD primitive */;
+```
+
+with the important difference that `lib_call` actually surfaces the
+return word — there is no plain Fourier syntax to do this with the
+lower-level builtins.
+
+Argument ordering by position:
+
+| Position | Meaning |
+|---|---|
+| 1 | Library contract address |
+| 2 | Method selector (1-byte literal, usually) |
+| 3..N-1 | Method arguments |
+| N (last) | Gas limit for the sub-call |
+
+Failure semantics:
+
+- If the delegatecall reverts (or any sub-call error), `lib_call`
+  reverts the **caller** with no return data. There is no success
+  word to inspect.
+- The library executes against the **caller's** storage (standard
+  DELEGATECALL behavior). Writes the library makes hit the caller's
+  slots, not the library's.
+
+### Example: math library
+
+```fourier
+contract Math {
+    pub fn add(a: uint, b: uint) -> uint { return a + b; }
+    pub fn mul(a: uint, b: uint) -> uint { return a * b; }
+}
+
+contract MyContract {
+    storage math_lib: address @ 0;
+
+    pub fn init(lib_addr: address) {
+        math_lib = lib_addr;
+    }
+
+    pub fn double_sum(a: uint, b: uint) -> uint {
+        let s: uint = lib_call(math_lib, 0x01, a, b, 50_000);   // add
+        return lib_call(math_lib, 0x02, s, 2, 50_000);           // mul by 2
+    }
+}
+```
+
+Selectors `0x01` / `0x02` follow the standard
+[selector assignment](functions.md#selector-assignment) rule: first
+`pub fn` in declaration order gets `0x01`.
+
 ## One-word `call`
 
 ```fourier

@@ -14,6 +14,15 @@ map[K, V]   // backed by SHA3(key_word || slot_word)
 array[T]    // dynamic storage array
 ```
 
+## Literals
+
+```fourier
+0  42  1_000_000  0xCAFE_BABE   // integers
+true  false                      // booleans
+"alice"                          // string → uint, right-padded to 32 bytes
+""                               // empty string == 0
+```
+
 See [Types](language/types.md).
 
 ## Contract skeleton

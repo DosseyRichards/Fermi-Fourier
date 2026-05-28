@@ -13,7 +13,47 @@ expression evaluates to a single 256-bit word.
 0xCAFE_BABE
 true                 // == 1
 false                // == 0
+"alice"              // UTF-8 right-padded to 32 bytes = 0x616c696365000...0
+""                   // empty string == 0
 ```
+
+String literals are sugar for `uint`: the UTF-8 bytes right-padded to
+32 with zeros, interpreted big-endian. Max 32 bytes; no escape
+sequences in v1. See [types](types.md#string-literals).
+
+## Fixed-point math (Q64.64)
+
+Fourier has no floating-point. Decimal arithmetic uses a Q64.64
+fixed-point convention: a `uint` value `V` represents the real number
+`V / 2**64`. So:
+
+- `1.0` is `2**64`
+- `0.5` is `2**63`
+- `1.5` is `2**64 + 2**63`
+- the largest exactly representable integer is `2**192 - 1`
+
+Four builtins do the arithmetic — `from_int` lifts an integer, `to_int`
+truncates back, and `fmul` / `fdiv` handle the 64-bit scale factor that
+plain `*` / `/` would not:
+
+```fourier
+let one_half:    uint = from_int(1) / 2;             // 0.5 as Q64.64
+let three:       uint = from_int(3);                  // 3.0
+let half_x_3:    uint = fmul(one_half, three);        // 1.5
+let two:         uint = fdiv(half_x_3, fdiv(three, from_int(4)));  // 1.5 / 0.75 = 2.0
+let as_int:      uint = to_int(two);                  // 2
+```
+
+`+` and `-` on Q64.64 values work without any helper — the scale
+factor is preserved by addition. Comparisons (`==`, `<`, `>`, …) also
+work as-is.
+
+**Overflow rule.** `fmul(a, b)` computes `(a * b) / 2**64` in 256-bit
+modular arithmetic. If `a * b ≥ 2**256` it wraps silently. With Q64.64
+both `a` and `b` must be below `2**128` (real values below `2**64` ≈
+`1.8e19`) for multiplication to be exact. For any sensible financial
+range this is comfortably satisfied. `fdiv` has the same constraint
+on `a * 2**64`.
 
 ## Variables
 
