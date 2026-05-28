@@ -9,7 +9,7 @@ docs_dir: docs
 
 theme:
   name: material
-  logo: assets/fermi_icon_black.png
+  logo: assets/fermi_logo.png
   favicon: assets/fermi_icon_black.png
   font:
     text: Inter
