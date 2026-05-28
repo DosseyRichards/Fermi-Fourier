@@ -118,7 +118,12 @@ Supported as of v1:
   See [types](language/types.md#string-literals).
 - **`init` constructor parameters** — unpacked from the deploy tx's
   `init_calldata`. See [contracts](language/contracts.md#init).
-- **`lib_call`** — DELEGATECALL library-call sugar. See
+- **`library Foo { ... }` blocks** plus `Foo::method(addr, gas, args...)`
+  call syntax — declarative library interfaces compiled to DELEGATECALL.
+  See [cross-contract / library blocks](language/cross-contract.md#library-blocks).
+- **`lib_call`** — lower-level DELEGATECALL builtin that the `library`
+  syntax desugars to. Useful when you don't want to declare the
+  interface up front. See
   [cross-contract / lib_call](language/cross-contract.md#lib_call-library-delegatecall-sugar).
 - **Multi-contract source files** — a `.fou` may declare multiple
   `contract` blocks. Use `compile_source_all(src)` for all bytecodes or

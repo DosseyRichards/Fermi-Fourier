@@ -87,12 +87,16 @@ Things noticed while writing that should be filled in.
   256-bit uint: the UTF-8 bytes right-padded with zeros to 32 bytes,
   big-endian (Solidity `bytes32("...")` packing). Max 32 bytes, no
   escapes. See `tests/test_fourier_strings.py`.
-- ~~No library-call sugar (delegatecall ergonomics)~~ — **resolved**.
-  `lib_call(addr, sel, args..., gas)` desugars to
-  `pack_sel` + `delegatecall_b` + auto-revert-on-failure + return-word
-  load. See `tests/test_fourier_lib_call.py`. A full `library Foo { ... }`
-  block syntax with selector-by-name resolution is still desirable;
-  this builtin is the minimal v1 step.
+- ~~No library-call sugar (delegatecall ergonomics)~~ — **resolved**
+  in two layers:
+    - `lib_call(addr, sel, args..., gas)` — explicit-selector form, used
+      when you don't want to pre-declare the library. Desugars to
+      `pack_sel` + `delegatecall_b` + auto-revert + return-word load.
+      See `tests/test_fourier_lib_call.py`.
+    - `library Foo { fn ...(); ... }` blocks + `Foo::method(addr, gas,
+      args...)` call syntax — declarative interface form. Compiler
+      resolves selectors by method name. See
+      `tests/test_fourier_library.py`.
 - ~~No multi-contract source files~~ — **resolved**. A `.fou` may
   declare multiple top-level `contract` blocks. Use
   `compile_source(src, name=...)` to pick one, or

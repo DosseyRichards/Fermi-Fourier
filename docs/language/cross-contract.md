@@ -94,6 +94,68 @@ require(ok == 1);
 // callee's return word sits at memory 0x40 but Fourier has no MLOAD primitive
 ```
 
+## `library Foo { ... }` blocks { #library-blocks }
+
+Declare a library's interface at the top of your `.fou` file alongside
+your contracts:
+
+```fourier
+library Math {
+    fn add(a: uint, b: uint) -> uint;
+    fn mul(a: uint, b: uint) -> uint;
+}
+```
+
+A library block is an **ABI declaration only** — no bytecode is emitted
+for it. The compiler uses the declared method order to assign
+selectors (`add` → `0x01`, `mul` → `0x02`) so call sites can resolve
+methods by name.
+
+### Calling a library method
+
+Use `Foo::method(addr, gas, args...)`:
+
+```fourier
+contract MyContract {
+    storage math_lib: address @ 0;
+
+    pub fn set_lib(a: address) {
+        math_lib = a;
+    }
+
+    pub fn double_sum(a: uint, b: uint) -> uint {
+        let s: uint = Math::add(math_lib, 50000, a, b);    // selector resolved at compile time
+        return Math::mul(math_lib, 50000, s, 2);
+    }
+}
+```
+
+Argument positions:
+
+| Position | Meaning |
+|---|---|
+| 1 | Library address (where the library bytecode is deployed) |
+| 2 | Gas limit for the sub-call |
+| 3..N | Arguments to the library method |
+
+Under the hood, `Foo::method(addr, gas, args...)` rewrites to
+`lib_call(addr, <resolved selector>, args..., gas)` and inherits all of
+`lib_call`'s semantics — DELEGATECALL, caller's storage, reverts on
+failure, returns the first 32-byte return word.
+
+The library implementation itself is just a regular `contract` block
+(in the same or a different file). Its public function order must
+match the library declaration so the selectors line up.
+
+### Compile-time errors
+
+- `unknown library 'X'` — call site references a library that was
+  not declared in the source.
+- `library 'X' has no method 'y'` — method name doesn't match any
+  entry in the library declaration.
+- `X::y call needs at least (lib_addr, gas); got N args` — the two
+  mandatory positional args are missing.
+
 ## `lib_call` — library DELEGATECALL sugar
 
 ```fourier
