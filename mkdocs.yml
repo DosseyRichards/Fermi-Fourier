@@ -1,0 +1,146 @@
+site_name: Fourier
+site_description: Fourier — the smart contract language for WaveLedger. Rust-flavored, compiled to a stack VM with post-quantum precompiles.
+site_url: https://fourier.fermi.world/
+repo_url: https://github.com/DosseyRichards/Fermi-Mining-ASIC-Software
+repo_name: DosseyRichards/Fermi-Mining-ASIC-Software
+edit_uri: ""
+
+docs_dir: docs
+
+theme:
+  name: material
+  logo: assets/fermi_icon_black.png
+  favicon: assets/fermi_icon_black.png
+  font:
+    text: Inter
+    code: JetBrains Mono
+  icon:
+    repo: fontawesome/brands/github
+  palette:
+    - media: "(prefers-color-scheme)"
+      scheme: slate
+      primary: black
+      accent: cyan
+      toggle:
+        icon: material/brightness-auto
+        name: Toggle to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: black
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: Toggle to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: Toggle to system preference
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+
+extra:
+  generator: false
+  alternate:
+    - name: Fourier
+      link: https://fourier.fermi.world
+      lang: en
+    - name: WaveLedger Chain Docs
+      link: https://docs.waveledger.net
+      lang: en
+    - name: Fermi Product Docs
+      link: https://docs.fermi.world
+      lang: en
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: ¶
+      toc_depth: 3
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.keys
+
+plugins:
+  - search
+  - minify:
+      minify_html: true
+      minify_js: true
+      minify_css: true
+
+nav:
+  - Home: index.md
+  - Quick reference: quick-reference.md
+  - Language:
+      - language/index.md
+      - Contracts: language/contracts.md
+      - Storage: language/storage.md
+      - Types: language/types.md
+      - Functions: language/functions.md
+      - Statements: language/statements.md
+      - Expressions: language/expressions.md
+      - Events: language/events.md
+      - Errors and reverts: language/errors.md
+      - Cross-contract calls: language/cross-contract.md
+      - Address type: language/address.md
+  - Standard library:
+      - stdlib/index.md
+      - SafeMath: stdlib/safemath.md
+      - Ownable: stdlib/ownable.md
+      - Pausable: stdlib/pausable.md
+      - ReentrancyGuard: stdlib/reentrancy.md
+      - Multisig: stdlib/multisig.md
+      - Timelock: stdlib/timelock.md
+      - CryptoRegistry: stdlib/crypto-registry.md
+  - ABI and calldata:
+      - abi/index.md
+      - Selector layout: abi/selector.md
+      - Argument encoding: abi/encoding.md
+      - Return values: abi/returns.md
+  - Compiler:
+      - compiler/index.md
+      - CLI usage: compiler/cli.md
+      - Python API: compiler/python.md
+      - Error reference: compiler/errors.md
+  - Examples:
+      - examples/index.md
+      - Counter: examples/counter.md
+      - Token (ERC-20-flavored): examples/token.md
+      - Threshold (M-of-N): examples/threshold.md
+      - Guestbook: examples/guestbook.md
+  - VM internals:
+      - VM intro: vm.md
