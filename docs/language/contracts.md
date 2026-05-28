@@ -80,7 +80,7 @@ stack.
 ## init
 
 ```fourier
-fn init() {
+fn init(p1: T1, p2: T2, ...) {
     // ... runs exactly once ...
 }
 ```
@@ -89,25 +89,55 @@ Rules enforced by `_ContractGen.__init__`:
 
 - `init` must **not** be declared `pub` — it runs automatically, never
   by selector.
-- `init` must take **no parameters**.
+- `init` **may** take typed parameters. They are unpacked from the
+  deploy transaction's `init_calldata` payload.
 - `init` must **not** return a value.
 - `return` is not allowed inside `init` (init must fall through to the
-  dispatcher).
+  dispatcher when paramless, or jump to `_deploy_stop` when it has
+  params — neither path lets the body emit an explicit return).
 
 The one-shot flag lives at storage slot `2**256 - 1`
 (`INIT_FLAG_SLOT`). Declaring a `storage NAME: ... @ <2**256-1>;` is a
 compile error.
 
-Init runs atomically inside the deploy transaction: the VM
+### Calldata layout
+
+Unlike `pub fn` calls, init invocations have **no leading selector
+byte**. Init parameters are packed as 32-byte words starting at
+calldata offset 0:
+
+```text
+calldata[ 0 .. 32]  = init_param[0]
+calldata[32 .. 64]  = init_param[1]
+calldata[64 .. 96]  = init_param[2]
+...
+```
+
+The deploy transaction supplies this payload as the `init_calldata`
+field on the deploy tx data dict; the contract engine forwards it as
+the VM's calldata for the deploy-time invocation.
+
+### Atomicity + the deploy_stop short-circuit
+
+Init runs atomically inside the deploy transaction. The VM
 [deploy](../vm.md) path immediately invokes the freshly stored code
-with empty calldata, the init prologue marks the flag and runs the
-init body, then the empty-calldata short-circuit halts before falling
-through to the dispatcher (which would otherwise revert on no
-selector). After this single invocation, `init` will never run again.
+with `init_calldata`.
+
+- **Paramless init**: deploy supplies empty calldata. The init prologue
+  marks the flag, runs the init body, then falls through to the
+  dispatcher — which sees `CALLDATASIZE == 0` and jumps to
+  `_deploy_stop`, halting cleanly.
+- **Init with params**: deploy supplies the packed params as
+  calldata. The init prologue marks the flag, the body unpacks the
+  params from offsets `0, 32, 64, ...`, then codegen emits an
+  unconditional `JUMP _deploy_stop` — so the dispatcher never gets a
+  chance to misread param bytes as a selector. After the first
+  invocation, `init` will never run again.
 
 ### Idiom for capturing the deployer
 
-Because `init` cannot take params, capture the deployer via `caller()`:
+Capture the deployer either via `caller()` (works whether or not init
+takes params) or via an explicit parameter:
 
 ```fourier
 contract Ownable {
@@ -119,8 +149,25 @@ contract Ownable {
 }
 ```
 
-This works because the deploy transaction triggers init in the same
-frame, so `caller()` is the deployer EOA.
+Or with an explicit param (gives the deployer more control over what
+goes into storage):
+
+```fourier
+contract Vault {
+    storage owner: address @ 0;
+    storage cap: uint @ 1;
+
+    fn init(initial_owner: address, initial_cap: uint) {
+        owner = initial_owner;
+        cap = initial_cap;
+    }
+}
+```
+
+The first form works because the deploy transaction triggers init in
+the same frame, so `caller()` is the deployer EOA. The second form is
+clearer when initial state needs to come from somewhere other than the
+deployer EOA (a factory contract, a multisig).
 
 ## A complete minimum contract
 

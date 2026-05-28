@@ -76,6 +76,14 @@ Things noticed while writing that should be filled in.
   compiler output (no metadata blob). Add a `--abi` flag once a CLI
   exists.
 
+### Resolved (was a discrepancy)
+
+- ~~`init` cannot take params~~ — **resolved**. Init now accepts typed
+  params, unpacked from calldata offset 0. Deploy tx supplies them via
+  `init_calldata`. Codegen jumps to `_deploy_stop` after a parameterized
+  init body so the dispatcher does not misread param bytes as a
+  selector. See `tests/test_fourier_init.py`.
+
 ### Stubbed pages
 
 - `examples/threshold.md` is a pattern walkthrough rather than a real

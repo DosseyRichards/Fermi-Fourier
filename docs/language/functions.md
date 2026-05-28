@@ -17,7 +17,7 @@ function".
 | Internally callable | No (v1 has no internal-call op) | No |
 | Selector assigned | No | Yes (`0x01`+) |
 | Bytecode emitted | Only if name is `init` | Yes |
-| Allowed signatures | `init() { ... }` only meaningful case in v1 | Any |
+| Allowed signatures | `init(...) { ... }` — params allowed, no return | Any |
 
 Private functions other than `init` compile to nothing in v1 — there's
 no internal-call mechanism, so they're dead code. The grammar permits
@@ -50,15 +50,27 @@ declarations starting at 1.
 
 ## Parameters
 
-Parameters are decoded from calldata at fixed offsets:
+Parameters are decoded from calldata at fixed offsets. The layout
+depends on whether this is a regular `pub fn` call or an `init`
+invocation:
 
 ```text
-calldata[ 0 ..  1]  = selector
-calldata[ 1 .. 33]  = param[0]   (32-byte word)
-calldata[33 .. 65]  = param[1]
-calldata[65 .. 97]  = param[2]
-...
+pub fn call:
+  calldata[ 0 ..  1]  = selector
+  calldata[ 1 .. 33]  = param[0]   (32-byte word)
+  calldata[33 .. 65]  = param[1]
+  calldata[65 .. 97]  = param[2]
+  ...
+
+init invocation (deploy tx's init_calldata):
+  calldata[ 0 .. 32]  = init_param[0]
+  calldata[32 .. 64]  = init_param[1]
+  calldata[64 .. 96]  = init_param[2]
+  ...
 ```
+
+The difference: a pub fn call carries a 1-byte selector; the init
+payload does not.
 
 Each param is loaded into a local memory slot during the function
 prologue (see `_emit_fn_body`):
@@ -114,7 +126,7 @@ the symbol table but its memory is leaked).
 
 | Aspect | Behavior |
 |---|---|
-| Param passing | Calldata, 32 bytes per param at offsets 1, 33, 65, ... |
+| Param passing | Calldata, 32 bytes per param. Pub fns start at offset 1; init starts at offset 0 (no selector). |
 | Return passing | Memory at `RETURN_AT` (0x40), `RETURN` opcode |
 | Caller identity | `caller()` builtin returns immediate caller |
 | Origin identity | `origin()` returns tx originator |
