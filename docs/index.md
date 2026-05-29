@@ -12,10 +12,25 @@ end in `.fou`; the compiler (`fourier/compiler.py`) lexes, parses, and
 emits stack-VM bytecode that runs on the
 [WaveLedger VM](vm.md).
 
-One source file, one contract. One parser pass, one codegen pass, no
-optimizer. Every storage slot is explicit. Every call semantics is
-explicit. Selectors are one byte. Floats, inheritance, generics
-are intentionally absent in v1.
+**Built on NIST PQC standards.** Contracts get native access to the
+current post-quantum primitives — **ML-DSA-87** (FIPS 204) signature
+verification, **SHA3** (FIPS 202) hashing, and **SLH-DSA-SHA2-128s**
+(FIPS 205) as an alternate signature scheme — via precompiles at
+reserved low addresses. No bytecode-level implementation of PQC needed.
+
+**Agile by design.** New signature schemes are added through a runtime
+registry: `verify_sig(scheme_id, pk, msg, sig)` dispatches by ID, so a
+contract can opt into any registered scheme without recompilation. As
+NIST standardizes additional PQC primitives, they plug in as new
+precompile addresses and new registry entries — no Fourier syntax
+change, no hard fork. See
+[Crypto agility](https://docs.waveledger.net/concepts/agility/) on the
+WaveLedger docs for the chain-level details.
+
+One source file, one contract. One parser pass, one codegen pass.
+Every storage slot is explicit. Every call semantic is explicit.
+Selectors are one byte. Floats and inheritance are intentionally
+absent in v1.
 
 [Quick reference :material-arrow-right:](quick-reference.md){ .md-button .md-button--primary }
 [Browse the language :material-arrow-right:](language/index.md){ .md-button }
