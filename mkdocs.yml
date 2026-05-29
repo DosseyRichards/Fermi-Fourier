@@ -7,6 +7,7 @@ docs_dir: docs
 
 theme:
   name: material
+  custom_dir: overrides
   logo: assets/fermi_logo.png
   favicon: assets/fermi_icon_black.png
   font:
@@ -46,6 +47,7 @@ theme:
     - search.suggest
     - search.highlight
     - search.share
+    - announce.dismiss
     - content.code.copy
     - content.code.annotate
     - content.tabs.link

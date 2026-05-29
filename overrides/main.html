@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{# Beta banner — renders as Material's announcement bar at the top of every
+   page. Dismissible (the `announce.dismiss` feature is enabled in
+   mkdocs.yml). #}
+{% block announce %}
+  <span class="md-banner__beta">Beta</span>
+  &nbsp;&middot;&nbsp; Fourier v1 is stabilizing. Syntax and builtins
+  may change before mainnet.
+  &nbsp;&middot;&nbsp;
+  <a href="https://fermi.world">fermi.world</a>
+{% endblock %}
