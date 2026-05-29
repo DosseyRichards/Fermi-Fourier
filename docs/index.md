@@ -27,6 +27,14 @@ change, no hard fork. See
 [Crypto agility](https://docs.waveledger.net/concepts/agility/) on the
 WaveLedger docs for the chain-level details.
 
+**Deploy from your own code.** The official chain SDK
+([`waveledger-sdk`](https://docs.waveledger.net/sdk/) on
+[PyPI](https://pypi.org/project/waveledger-sdk/) +
+[npm](https://www.npmjs.com/package/waveledger-sdk)) compiles, deploys,
+and calls Fourier contracts programmatically via the
+[playground API](https://docs.waveledger.net/api/playground/) — no
+manual hex packing required.
+
 One source file, one contract. One parser pass, one codegen pass.
 Every storage slot is explicit. Every call semantic is explicit.
 Selectors are one byte. Floats and inheritance are intentionally
