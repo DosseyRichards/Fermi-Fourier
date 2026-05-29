@@ -63,7 +63,7 @@ storage (the VM treats writing zero as a delete).
 `vm/state.py` has no concept of a "burn" or "null" address — `0x00 *
 20` is an ordinary account that simply receives any funds sent to it.
 The chain-level convention (per the
-[WaveLedger transaction docs](https://docs.waveledger.net/reference/tx/#sentinel-senders-recipients))
+[WaveLedger transaction docs](https://docs.fermi.world/reference/tx/#sentinel-senders-recipients))
 treats `"0" * 32` as a burn convention; that's a docs convention, not
 a VM rule.
 

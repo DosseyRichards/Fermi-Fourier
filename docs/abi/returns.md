@@ -109,7 +109,7 @@ transaction receipt:
 ```
 
 (See
-[https://docs.waveledger.net/reference/receipt/](https://docs.waveledger.net/reference/receipt/)
+[https://docs.fermi.world/reference/receipt/](https://docs.fermi.world/reference/receipt/)
 for receipt fields.)
 
 To decode:

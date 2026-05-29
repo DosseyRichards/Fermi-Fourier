@@ -24,15 +24,15 @@ contract can opt into any registered scheme without recompilation. As
 NIST standardizes additional PQC primitives, they plug in as new
 precompile addresses and new registry entries — no Fourier syntax
 change, no hard fork. See
-[Crypto agility](https://docs.waveledger.net/concepts/agility/) on the
+[Crypto agility](https://docs.fermi.world/concepts/agility/) on the
 WaveLedger docs for the chain-level details.
 
 **Deploy from your own code.** The official chain SDK
-([`waveledger-sdk`](https://docs.waveledger.net/sdk/) on
+([`waveledger-sdk`](https://docs.fermi.world/sdk/) on
 [PyPI](https://pypi.org/project/waveledger-sdk/) +
 [npm](https://www.npmjs.com/package/waveledger-sdk)) compiles, deploys,
 and calls Fourier contracts programmatically via the
-[playground API](https://docs.waveledger.net/api/playground/) — no
+[playground API](https://docs.fermi.world/api/playground/) — no
 manual hex packing required.
 
 One source file, one contract. One parser pass, one codegen pass.

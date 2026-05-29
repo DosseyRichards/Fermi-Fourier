@@ -47,7 +47,7 @@ To call `transfer(0x1234..1234, 1000)` you build:
 Total: 65 bytes.
 
 This goes into the `data.calldata` field of a chain-level
-[contract call transaction](https://docs.waveledger.net/reference/tx/#contract-call):
+[contract call transaction](https://docs.fermi.world/reference/tx/#contract-call):
 
 ```json
 {
@@ -78,6 +78,6 @@ This goes into the `data.calldata` field of a chain-level
 - Manual tx construction in tests.
 
 The Python SDK (see
-[https://docs.waveledger.net/sdk/](https://docs.waveledger.net/sdk/))
+[https://docs.fermi.world/sdk/](https://docs.fermi.world/sdk/))
 provides helpers; this section is the source of truth those helpers
 implement.

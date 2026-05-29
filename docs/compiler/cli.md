@@ -89,7 +89,7 @@ Or pipe through a disassembler — see the bytecode-walk in
 ## Deploying compiled bytecode
 
 Wrap the hex output in a deploy tx (per
-[https://docs.waveledger.net/reference/tx/](https://docs.waveledger.net/reference/tx/#contract-deploy)):
+[https://docs.fermi.world/reference/tx/](https://docs.fermi.world/reference/tx/#contract-deploy)):
 
 ```json
 {

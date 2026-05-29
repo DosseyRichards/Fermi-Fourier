@@ -59,9 +59,6 @@ extra:
       link: https://fourier.fermi.world
       lang: en
     - name: WaveLedger Chain Docs
-      link: https://docs.waveledger.net
-      lang: en
-    - name: Fermi Product Docs
       link: https://docs.fermi.world
       lang: en
 
