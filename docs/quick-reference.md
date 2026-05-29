@@ -113,6 +113,12 @@ safe_sub(a, b)     -> uint
 safe_mul(a, b)     -> uint
 safe_div(a, b)     -> uint
 
+// Q64.64 fixed-point math (scale = 2**64; 1.0 == 2**64)
+from_int(n)         -> uint        // lift integer to fixed
+to_int(f)           -> uint        // truncate fractional bits
+fmul(a, b)          -> uint        // (a * b) / 2**64
+fdiv(a, b)          -> uint        // (a * 2**64) / b
+
 // Storage array
 len(arr)           -> uint
 push(arr, v)       -> uint        // returns new length
@@ -123,6 +129,9 @@ pack_sel(sel, arg1, ..., argN)  -> bytes
 call_b(addr, calldata, value, gas)    -> uint   // 1 = success
 delegatecall_b(addr, calldata, gas)   -> uint
 staticcall_b(addr, calldata, gas)     -> uint
+
+// Library-call sugar — DELEGATECALL with auto-pack + auto-revert
+lib_call(lib_addr, selector, args..., gas) -> uint   // returns callee's return word
 
 // One-word legacy call (single 32-byte calldata word)
 call(addr, calldata_word, value, gas) -> uint

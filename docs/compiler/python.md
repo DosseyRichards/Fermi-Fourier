@@ -25,7 +25,7 @@ contract Counter {
 '''
 bytecode = compile_source(src)
 print(len(bytecode), "bytes")
-# 200 bytes (approximate)
+# 198 bytes (current counter; sizes shift slightly as codegen evolves)
 ```
 
 ### Multi-contract sources

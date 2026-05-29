@@ -64,12 +64,11 @@ with open("counter.bin", "wb") as f:
     f.write(bytecode)
 ```
 
-A thin wrapper to expose this as a shell tool is in
-[TODO](https://github.com/DosseyRichards/Fermi-Mining-ASIC-Software/blob/main/_docs/fourier-docs/TODO.md);
-contributions welcome.
-
-See [CLI usage](cli.md) for the recommended one-liners until a proper
-CLI ships.
+A standalone `fourierc` binary is on the
+[follow-up list](https://github.com/DosseyRichards/Fermi-Fourier/blob/main/TODO.md).
+Until it lands, use the `python -c '…'` one-liners on the
+[CLI usage](cli.md) page — they're terminal-friendly and produce
+identical bytecode.
 
 ## Subpages
 

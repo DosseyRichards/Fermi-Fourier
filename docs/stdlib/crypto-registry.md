@@ -136,9 +136,10 @@ shipped Timelock supports proposals with only one arg
   | precompile_addr`) and have `set_scheme` unpack.
 - Or extend the Timelock to store multiple args per proposal.
 
-The fuller solution lives in TODO; for now, governance updates use a
-custom Timelock variant or a separate "two-arg setter" wrapper
-contract.
+A two-arg Timelock variant is on the
+[follow-up list](https://github.com/DosseyRichards/Fermi-Fourier/blob/main/TODO.md);
+for now, governance updates use a custom Timelock variant or a
+separate "two-arg setter" wrapper contract.
 
 ## Adding a new scheme
 
