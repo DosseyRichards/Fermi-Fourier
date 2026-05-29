@@ -1,8 +1,6 @@
 site_name: Fourier
 site_description: Fourier — the smart contract language for WaveLedger. Rust-flavored, compiled to a stack VM with post-quantum precompiles.
 site_url: https://fourier.fermi.world/
-repo_url: https://github.com/DosseyRichards/Fermi-Mining-ASIC-Software
-repo_name: DosseyRichards/Fermi-Mining-ASIC-Software
 edit_uri: ""
 
 docs_dir: docs
@@ -14,8 +12,6 @@ theme:
   font:
     text: Inter
     code: JetBrains Mono
-  icon:
-    repo: fontawesome/brands/github
   palette:
     - media: "(prefers-color-scheme)"
       scheme: slate
@@ -150,3 +146,4 @@ nav:
       - Guestbook: examples/guestbook.md
   - VM internals:
       - VM intro: vm.md
+  - "↗ fermi.world": https://fermi.world
