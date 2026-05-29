@@ -75,9 +75,9 @@ a VM rule.
 | `origin()` | Tx originator (tx.origin) | `ORIGIN` |
 
 There is no `address(this)` builtin in v1, but the VM exposes
-`ADDRESS` (0x70). It's not currently surfaced to Fourier — track
-[TODO.md](https://github.com/DosseyRichards/Fermi-Mining-ASIC-Software/blob/main/_docs/fourier-docs/TODO.md)
-if you need it.
+`ADDRESS` (0x70). It's not currently surfaced to Fourier — tracked
+on the
+[follow-up list](https://github.com/DosseyRichards/Fermi-Fourier/blob/main/TODO.md).
 
 ## Comparing addresses
 
