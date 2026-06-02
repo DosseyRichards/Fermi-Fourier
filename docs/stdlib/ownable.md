@@ -12,7 +12,8 @@ renounce.
 |---|---|---|---|
 | `0` | `owner` | `address` | Current owner; `0` after renouncement |
 
-Reserves slot 0. Your contract's storage must start at slot 1 or higher.
+Reserves slot 0. Inheriting contracts must start their storage at
+slot 1 or higher.
 
 ## Source
 
@@ -50,7 +51,7 @@ contract Ownable {
 
 ## Usage: inherit-by-copy
 
-Add the owner slot + the access check to your own contract:
+Add the owner slot and the access check to the consuming contract:
 
 ```fourier
 contract Vault {
@@ -75,38 +76,37 @@ contract Vault {
 
 ## Usage: deploy + call
 
-If you'd rather have a single shared Ownable record (e.g. an
-organization's owner controls many contracts):
+For a single shared Ownable record (for example, an organization's
+owner controls many contracts):
 
-1. Deploy `Ownable` as its own contract; remember its address.
-2. In each governed contract, store the ownable contract's address
+1. Deploy `Ownable` as its own contract; record its address.
+2. In each governed contract, store the Ownable contract's address
    and STATICCALL it to read the current owner before granting
    privileges.
 
-This is rare in v1 because there's no `bytes`-returning MLOAD
-primitive at the Fourier level — you'd have to write your check in
-hand-rolled bytecode or accept that the staticcall result lands at
-memory `0x40` outside the source language. Inherit-by-copy is the
-practical choice.
+This usage is rare. V1 exposes no `bytes`-returning MLOAD primitive
+at the Fourier level, so the check must be written in hand-rolled
+bytecode or accept that the staticcall result lands at memory `0x40`
+outside the source language. Inherit-by-copy is the practical choice.
 
 ## Renouncement
 
-`renounce_ownership()` writes `0` into the owner slot. Because writing
-0 to a storage slot **deletes** the entry (`vm/state.py`), the slot
-reverts to the natural-zero default. Subsequent `caller() == owner`
-checks will fail for any non-zero caller — the contract becomes
-permanently unmanaged.
+`renounce_ownership()` writes `0` into the owner slot. Because
+writing 0 to a storage slot **deletes** the entry (`vm/state.py`),
+the slot reverts to the natural-zero default. Subsequent
+`caller() == owner` checks fail for any non-zero caller; the contract
+becomes permanently unmanaged.
 
-This is permanent. There is no way to recover ownership after
-renouncement; even calling `transfer_ownership(addr)` will fail
-because the `require(caller() == owner)` check needs the caller to be
-the zero address.
+This is permanent. Ownership cannot be recovered after renouncement;
+calling `transfer_ownership(addr)` fails because the
+`require(caller() == owner)` check requires the caller to be the zero
+address.
 
 ## Events
 
-Ownable as shipped does not emit events. If you need an
-`OwnershipTransferred(prev, new)` log for off-chain indexing, add it
-in your copy:
+Ownable as shipped does not emit events. For an
+`OwnershipTransferred(prev, new)` log used by off-chain indexers, add
+it to the inherited copy:
 
 ```fourier
 event OwnershipTransferred(prev: address, new_owner: address);

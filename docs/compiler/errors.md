@@ -14,8 +14,8 @@ Source: `fourier/lexer.py::tokenize`.
 | `empty hex literal` | `0x` with no hex digits following |
 | `unexpected character: '<c>'` | A character that doesn't start any token (control chars, non-ASCII letters outside identifier rules, etc.) |
 
-Fix: check the offending character; remove or replace with whitespace
-/ a valid token.
+Fix: inspect the offending character; remove or replace it with
+whitespace or a valid token.
 
 ## Parse errors (`ParseError`)
 
@@ -39,8 +39,8 @@ unexpected token kind shown.
 | `expected expression` | A position needed an expression — got punctuation or EOF |
 | `tuple binding has N names but M types` | `let (x, y): (uint, address, bool) = ...` mismatch |
 
-Fix: the position pinpoints the offending token. Inspect the source
-character-by-character against the [Quick reference](../quick-reference.md).
+Fix: the position pinpoints the offending token. Compare the source
+against the [Quick reference](../quick-reference.md).
 
 ## Compile errors (`CompileError`)
 
@@ -61,7 +61,7 @@ type compatibility, storage layout.
 | Message | Cause |
 |---|---|
 | `init function must not be declared 'pub' — it runs automatically on first call, never via external selector` | Wrote `pub fn init`; drop the `pub` |
-| `init function must not take parameters in Fourier v1; use storage initialization or constants instead` | Wrote `fn init(a: uint)`; init takes no args |
+| `init function must not take parameters; use storage initialization or constants instead` | Wrote `fn init(a: uint)`; init takes no arguments |
 | `init function must not return a value` | Wrote `fn init() -> uint`; init has no return |
 | `return is not allowed inside init — init runs to its end and falls through to the dispatcher` | A `return` statement inside the init body; remove it |
 
@@ -70,7 +70,7 @@ type compatibility, storage layout.
 | Message | Cause |
 |---|---|
 | `unknown identifier 'NAME'` | A `Var` or assignment refers to a name that isn't a local or storage decl |
-| `unknown function 'NAME/N'` | A `Call` whose name isn't a known builtin (no user-defined call mechanism in v1) |
+| `unknown function 'NAME/N'` | A `Call` whose name is not a known builtin (v1 has no user-defined call mechanism) |
 | `unknown event 'NAME'` | `emit NAME(...)` with no matching `event NAME(...)` decl |
 | `event 'NAME' expects K args, got N` | `emit` arg count mismatch |
 
@@ -94,7 +94,7 @@ type compatibility, storage layout.
 | Message | Cause |
 |---|---|
 | `tuple literal only allowed in 'return (...)' or 'let (...) = (...)'` | A `(a, b)` expression anywhere except a return / destructuring let |
-| `tuple destructuring requires a literal tuple RHS in v1 (let (x, y) = (a, b);)` | RHS isn't a `(...)` tuple literal — e.g. binding a call return |
+| `tuple destructuring requires a literal tuple RHS (let (x, y) = (a, b);)` | RHS is not a `(...)` tuple literal — for example, binding a call return |
 | `tuple binding has N names but RHS has M elements` | Names / RHS arity mismatch |
 
 ### Builtin-specific errors
@@ -123,15 +123,15 @@ Source: `vm/asm.py`.
 | `LOG n out of range: n` | More than 4 topics (LOG can encode 0..4) |
 | `unknown asm item: <item>` | Internal codegen bug (please file an issue) |
 
-These typically indicate a codegen bug rather than a user error — the
-language doesn't expose ways to overflow these limits directly. If you
-hit one, capture the source and report it.
+These indicate a codegen bug rather than a user error: the language
+does not expose ways to exceed these limits directly. Capture the
+source and file an issue if one is encountered.
 
 ## Common fixes
 
 | Symptom | Likely fix |
 |---|---|
-| Parser dies at `LBRACE` after `fn name()` | Missing `->` and return type — but you wrote the body and the parser tried to read it as the type. Add `-> TYPE`. |
-| `unknown identifier` for a name you definitely declared | Storage decls and `let`s aren't visible across functions, only locals within the function are. Check spelling. |
-| `storage slot collision` after copying stdlib | Renumber the stdlib's `@ slot` declarations to avoid yours. See [Stdlib slot conventions](../stdlib/index.md#slot-conventions). |
-| `mapping used as scalar` when emitting an event | Forgot the index: `emit X(balances[addr])`, not `emit X(balances)`. |
+| Parser dies at `LBRACE` after `fn name()` | Missing `->` and return type — the parser tried to read the body as the type. Add `-> TYPE`. |
+| `unknown identifier` for a name that is declared | `let`s and storage decls do not cross function boundaries; only locals within the function are visible. Check spelling. |
+| `storage slot collision` after copying stdlib | Renumber the stdlib's `@ slot` declarations to avoid the contract's own slots. See [Stdlib slot conventions](../stdlib/index.md#slot-conventions). |
+| `mapping used as scalar` when emitting an event | Missing index: write `emit X(balances[addr])`, not `emit X(balances)`. |

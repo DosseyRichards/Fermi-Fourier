@@ -77,16 +77,16 @@ VM opcode: `STATICCALL` (0x84).
 
 ## Return data
 
-Whichever call kind you use, the callee's return data is copied into
-**32 bytes** at `RETURN_AT (0x40)` of the caller's memory. To read it
-from Fourier, you'd need a `bytes` deref, which isn't a first-class
-op in v1 — instead, the convention is for callees to return a single
-`uint` (or `bool` or `address`) and for callers to inspect via a
-follow-up MLOAD that the language doesn't expose.
+Regardless of call kind, the callee's return data is copied into
+**32 bytes** at `RETURN_AT (0x40)` in the caller's memory. Reading it
+from Fourier would require a `bytes` deref, which is not a
+first-class op in v1. The convention is for callees to return a
+single `uint` (or `bool` or `address`) and for callers to inspect via
+a follow-up MLOAD that the language does not expose.
 
-In practice, **the success word is the only result Fourier-level code
-typically reads.** If you need the callee's return value, write a
-small wrapper or use the call result as a precondition only:
+In practice, **the success word is the only result that Fourier-level
+code typically reads.** For the callee's return value, write a small
+wrapper or use the call result as a precondition only:
 
 ```fourier
 let ok: uint = call_b(target, cd, 0, 50000);
@@ -96,8 +96,8 @@ require(ok == 1);
 
 ## `library Foo { ... }` blocks { #library-blocks }
 
-Declare a library's interface at the top of your `.fou` file alongside
-your contracts:
+Declare a library's interface at the top of the `.fou` file alongside
+its contracts:
 
 ```fourier
 library Math {
@@ -113,7 +113,7 @@ methods by name.
 
 ### Calling a library method
 
-Use `Foo::method(addr, gas, args...)`:
+The call syntax is `Foo::method(addr, gas, args...)`:
 
 ```fourier
 contract MyContract {
@@ -143,9 +143,9 @@ Under the hood, `Foo::method(addr, gas, args...)` rewrites to
 `lib_call`'s semantics — DELEGATECALL, caller's storage, reverts on
 failure, returns the first 32-byte return word.
 
-The library implementation itself is just a regular `contract` block
-(in the same or a different file). Its public function order must
-match the library declaration so the selectors line up.
+The library implementation is a regular `contract` block (in the
+same or a different file). Its public function order must match the
+library declaration so the selectors line up.
 
 ### Compile-time errors
 
@@ -162,10 +162,10 @@ match the library declaration so the selectors line up.
 lib_call(lib_addr: address, selector: uint, arg1: T1, ..., argN: TN, gas: uint) -> uint
 ```
 
-The high-level form of "call a library via DELEGATECALL". One
-builtin captures the four-line `pack_sel` + `delegatecall_b` +
-`require(ok)` + `MLOAD(RETURN_AT)` pattern that you would otherwise
-spell out by hand:
+A high-level form of "call a library via DELEGATECALL". One builtin
+captures the four-line `pack_sel` + `delegatecall_b` + `require(ok)`
++ `MLOAD(RETURN_AT)` pattern that would otherwise be spelled out by
+hand:
 
 ```fourier
 let result: uint = lib_call(lib_addr, 0x01, a, b, 100_000);
@@ -180,9 +180,9 @@ require(ok == 1);
 let result: uint = /* the 32-byte word at RETURN_AT — Fourier has no MLOAD primitive */;
 ```
 
-with the important difference that `lib_call` actually surfaces the
-return word — there is no plain Fourier syntax to do this with the
-lower-level builtins.
+The important difference is that `lib_call` surfaces the return
+word; no plain Fourier syntax achieves this with the lower-level
+builtins.
 
 Argument ordering by position:
 
@@ -235,9 +235,9 @@ call(addr: address, calldata_word: uint, value: uint, gas: uint) -> uint
 ```
 
 The legacy form. `calldata_word` is a 32-byte word that becomes the
-entire calldata — first byte is the selector, remaining 31 are
-ignored by the callee's dispatcher unless they comprise a single
-argument. Use this when the callee takes zero or one arg:
+entire calldata. The first byte is the selector; the remaining 31
+are ignored by the callee's dispatcher unless they comprise a single
+argument. Use this form when the callee takes zero or one argument:
 
 ```fourier
 let ok: uint = call(target, 0x01_00..._00, 0, 50000);    // selector 0x01, no args
@@ -255,8 +255,8 @@ avail = f.gas - f.gas // 64
 fwd_gas = min(fwd_gas, avail)
 ```
 
-Pass a generous gas budget; the cap ensures the caller always has
-gas left to recover from a failed sub-call.
+Pass a generous gas budget; the cap guarantees the caller retains
+gas to recover from a failed sub-call.
 
 ## Reentrancy
 
@@ -271,8 +271,8 @@ _locked = 1;
 _locked = 0;
 ```
 
-Set the flag **before** the external call; unset after. Any reentry
-during the call hits the flag and reverts.
+Set the flag **before** the external call; clear it after. Any
+reentry during the call hits the flag and reverts.
 
 ## Call depth
 

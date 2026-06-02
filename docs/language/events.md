@@ -16,9 +16,9 @@ event Transfer(from: address, to: address, amount: uint);
 event Approval(owner: address, spender: address, amount: uint);
 ```
 
-Field types are declared but **not** used for runtime encoding —
-every arg word is 32 bytes regardless. Field types are part of the
-signature hash that becomes topic 0 (see below).
+Field types are declared but **not** used for runtime encoding;
+every argument word is 32 bytes regardless. Field types are part of
+the signature hash that becomes topic 0 (see below).
 
 ## Signature hash (topic 0)
 
@@ -89,8 +89,8 @@ f.logs.append(LogEntry(
 
 ## Constraints
 
-- Maximum 4 topics. Topic 0 is reserved for the signature hash, so
-  you get **up to 3 indexed args**.
+- Maximum 4 topics. Topic 0 is reserved for the signature hash,
+  leaving **up to 3 indexed arguments**.
 - A `LOG` opcode is forbidden in a `STATICCALL` frame; emitting an
   event inside a `staticcall_b` callee reverts.
 - Emit args are evaluated left-to-right. Side effects in earlier args
@@ -130,9 +130,9 @@ topic0 = hashlib.sha3_256(sig.encode()).hexdigest()
 
 ## Pattern: indexable args go first
 
-Because the first 3 args become topics (cheaper to filter), put the
-fields you'll query by — sender/recipient addresses, ids — first.
-Put bulky or rarely-queried fields last (they end up in data):
+Because the first 3 arguments become topics (cheaper to filter),
+place query-by fields — sender/recipient addresses, ids — first, and
+put bulky or rarely-queried fields last (these land in data):
 
 ```fourier
 event Trade(

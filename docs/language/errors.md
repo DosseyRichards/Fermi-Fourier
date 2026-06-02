@@ -12,9 +12,9 @@ require(cond);
 require(cond, msg_bytes);     // optional bytes payload
 ```
 
-`cond` is any expression that produces a non-zero value to pass.
-`msg_bytes` is a `bytes` value (typically constructed with
-`pack_sel(...)` or returned by a helper).
+`cond` is any expression; the assertion passes when it produces a
+non-zero value. `msg_bytes` is a `bytes` value, typically constructed
+with `pack_sel(...)` or returned by a helper.
 
 Bytecode:
 
@@ -96,9 +96,10 @@ let ok: uint = call_b(target, cd, 0, 50000);
 require(ok == 1);
 ```
 
-If `target` reverted, `ok == 0`, `require` reverts the parent contract
-as well, and the whole tx unwinds. If you want to **handle** the
-sub-call failure (e.g. log it and continue), skip the `require`:
+If `target` reverted, `ok == 0`, `require` reverts the parent
+contract as well, and the whole tx unwinds. To **handle** the
+sub-call failure (for example, log it and continue), omit the
+`require`:
 
 ```fourier
 let ok: uint = call_b(target, cd, 0, 50000);
@@ -129,16 +130,16 @@ calling tx fails with empty return data.
 
 ## No errors-as-types
 
-Fourier has no `Result`, no `Option`, no error-typed return. Failure
-modes are communicated either through a `bool` / `uint` return value
-checked by the caller, or through a hard revert that aborts the tx.
-The norm in the [stdlib](../stdlib/index.md) is to return `1` for
-success and revert on any precondition failure.
+Fourier has no `Result`, no `Option`, and no error-typed return.
+Failure modes are communicated either through a `bool` / `uint`
+return value checked by the caller, or through a hard revert that
+aborts the tx. The convention in the [stdlib](../stdlib/index.md) is
+to return `1` for success and revert on any precondition failure.
 
 ## Revert payload conventions
 
-The `bytes` payload to `require(cond, msg)` is opaque — there is no
-defined string-encoding convention in v1. Common patterns:
+The `bytes` payload to `require(cond, msg)` is opaque. V1 defines no
+string-encoding convention. Common patterns:
 
 - Encode an error code as a single 32-byte word:
 
@@ -150,4 +151,4 @@ defined string-encoding convention in v1. Common patterns:
 - Build a tagged bytes value with `pack_sel(error_code, context_word)`.
 
 Off-chain consumers receive the payload in the transaction receipt's
-`return_data` field; they decide what to do with it.
+`return_data` field and decide how to interpret it.

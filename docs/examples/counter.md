@@ -2,13 +2,13 @@
 
 Source: `fourier/examples/counter.fou`.
 
-The minimum interesting Fourier contract — one slot of storage, an
-init, a read, a write.
+The minimal Fourier contract: one storage slot, one init, one read,
+one write.
 
 ## Full source
 
 ```fourier
-// Minimal counter — demonstrates init + a single mutating method.
+// Counter — single uint storage, init plus a mutating method.
 
 contract Counter {
     storage value: uint @ 0;
@@ -27,7 +27,7 @@ contract Counter {
 }
 ```
 
-## Walkthrough
+## Annotated source
 
 ### `storage value: uint @ 0;`
 
@@ -35,18 +35,18 @@ One storage slot, pinned to slot 0. Holds a single 256-bit unsigned
 integer. After init, this slot reads `42`; after each `inc()` call,
 the value at slot 0 increases by 1.
 
-The pin to slot 0 is arbitrary — any slot from 0 to `2**256 - 2` would
-work. Slot `2**256 - 1` is reserved for the init guard.
+The pin to slot 0 is arbitrary; any slot from 0 to `2**256 - 2` is
+valid. Slot `2**256 - 1` is reserved for the init guard.
 
 ### `fn init() { value = 42; }`
 
 The optional initializer. Runs exactly once, atomically inside the
 deploy transaction. After this runs, the contract reads `value == 42`
-regardless of who calls `get()` first.
+regardless of which caller invokes `get()` first.
 
-`init` is private (no `pub`). It is **not** assigned a selector. The
-compiler enforces no params, no return, no early `return`. See
-[Contracts / init](../language/contracts.md#init).
+`init` is private (no `pub`) and is **not** assigned a selector. The
+compiler enforces no parameters, no return, and no early `return`.
+See [Contracts / init](../language/contracts.md#init).
 
 ### `pub fn get() -> uint { return value; }`
 
@@ -86,8 +86,8 @@ STOP               ; implicit terminator for void fn
 ```
 
 Note: ADD wraps modulo `2**256`. Calling `inc()` after the counter
-hits `2**256 - 1` rolls over to 0 with no error. Use `safe_add` if
-you'd prefer to revert.
+hits `2**256 - 1` rolls over to 0 with no error. Use `safe_add` to
+revert on overflow instead.
 
 ## Calldata for each selector
 
@@ -113,13 +113,13 @@ Conceptual flow:
    `return_data` = `0000...002a` (42 in hex).
 5. Submit `inc()` calls. Each increments the slot.
 
-## What to try next
+## Variants
 
-- Add `pub fn dec() { value = value - 1; }`. What selector does it
-  get? (Hint: it's the third `pub fn`.) Does `dec()` from `value == 0`
-  revert or wrap?
+- Add `pub fn dec() { value = value - 1; }`. Its selector is the
+  third `pub fn`, `0x03`. `dec()` from `value == 0` wraps to
+  `2**256 - 1`; switch to `safe_sub` to revert instead.
 - Add a precondition: `pub fn inc_if_owner() { require(caller() ==
-  owner); value = value + 1; }`. You'll need to add a `storage owner:
-  address @ 1;` and set it in init.
-- Swap `value + 1` for `safe_add(value, 1)` and observe overflow
-  behavior change from wrap to revert.
+  owner); value = value + 1; }`. This requires a `storage owner:
+  address @ 1;` set in init.
+- Replace `value + 1` with `safe_add(value, 1)` to change overflow
+  behavior from wrap to revert.

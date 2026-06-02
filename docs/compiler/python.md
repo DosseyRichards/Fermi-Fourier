@@ -31,7 +31,7 @@ print(len(bytecode), "bytes")
 ### Multi-contract sources
 
 A source file may declare multiple top-level `contract` blocks. To
-pick which one `compile_source` returns, pass `name=`:
+select which one `compile_source` returns, pass `name=`:
 
 ```python
 src = '''
@@ -42,8 +42,8 @@ bc_math   = compile_source(src, name="Math")
 bc_string = compile_source(src, name="String")
 ```
 
-Without `name=`, a multi-contract source raises `ValueError`. For all
-bytecodes at once, use `compile_source_all`:
+Without `name=`, a multi-contract source raises `ValueError`. To
+obtain all bytecodes at once, use `compile_source_all`:
 
 ```python
 from fourier import compile_source_all
@@ -62,7 +62,7 @@ See [Error reference](errors.md).
 
 ## Lower-level entry points
 
-For tools that need to inspect intermediate stages:
+Tools that need to inspect intermediate stages import:
 
 ```python
 from fourier import tokenize, Token, TokenKind
@@ -121,7 +121,7 @@ def trace_compile(source: str) -> bytes:
     return compile_contract(ast)
 ```
 
-This is what `compile_source` does, minus the prints.
+This matches what `compile_source` does, minus the prints.
 
 ## Error handling
 
@@ -152,10 +152,10 @@ its own `_ContractGen` and `_FnCtx` objects.
 
 ## Caching
 
-The compiler does no caching. If you compile the same source twice you
-get the same bytecode twice; if you need a cache, build one on top of
-`compile_source(src) → bytes`. The result is deterministic for a given
-source string.
+The compiler does no caching. Compiling the same source twice yields
+the same bytecode twice; build a cache on top of
+`compile_source(src) → bytes` if needed. The result is deterministic
+for a given source string.
 
 ## Embedding in a build tool
 

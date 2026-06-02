@@ -1,7 +1,7 @@
 # CLI usage
 
-Fourier v1 does not ship a standalone `fourierc` binary. Until one
-lands, compile from the command line by invoking the package directly.
+Fourier v1 does not ship a standalone `fourierc` binary. Compile from
+the command line by invoking the package directly.
 
 ## One-liner: stdin → stdout
 
@@ -11,8 +11,8 @@ python -c 'from fourier import compile_source; import sys; sys.stdout.buffer.wri
   > counter.bin
 ```
 
-This reads the `.fou` file from stdin, writes the raw bytecode (binary)
-to stdout. Redirect to a file or pipe to `xxd` to inspect.
+This reads the `.fou` file from stdin and writes raw bytecode
+(binary) to stdout. Redirect to a file or pipe to `xxd` to inspect.
 
 ## One-liner: hex output
 
@@ -21,7 +21,7 @@ python -c 'from fourier import compile_source; import sys; print(compile_source(
   < counter.fou
 ```
 
-Prints hex on a single line — useful for embedding in a deploy tx's
+Prints hex on a single line, suitable for embedding in a deploy tx's
 `data.code` field.
 
 ## Reusable shell function
@@ -57,10 +57,10 @@ fourierc-hex counter.fou
 fourierc counter.fou > counter.bin
 ```
 
-## What can go wrong
+## Error handling
 
-Compilation errors are raised as Python exceptions. Run with `-c` and
-they'll print a traceback:
+Compilation errors are raised as Python exceptions. Under `-c`, they
+print as a traceback:
 
 ```text
 Traceback (most recent call last):
@@ -68,14 +68,14 @@ Traceback (most recent call last):
 fourier.parser.ParseError: 5:12: expected SEMI (at LBRACE)
 ```
 
-The leading numbers are `line:col` from the source file.
+The leading numbers are `line:col` positions in the source file.
 
 See [Error reference](errors.md) for the full catalog of error types.
 
 ## Reading the bytecode
 
-The output is raw VM bytecode (the same byte sequence that goes into
-an account's `code` field). To inspect:
+The output is raw VM bytecode — the same byte sequence written into
+an account's `code` field. To inspect:
 
 ```bash
 xxd counter.bin | head
@@ -83,7 +83,7 @@ xxd counter.bin | head
 # ...
 ```
 
-Or pipe through a disassembler — see the bytecode-walk in
+Or pipe through a disassembler; see the bytecode walk in
 `vm/machine.py` for the opcode table.
 
 ## Deploying compiled bytecode

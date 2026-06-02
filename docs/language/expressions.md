@@ -44,16 +44,15 @@ let two:         uint = fdiv(half_x_3, fdiv(three, from_int(4)));  // 1.5 / 0.75
 let as_int:      uint = to_int(two);                  // 2
 ```
 
-`+` and `-` on Q64.64 values work without any helper — the scale
-factor is preserved by addition. Comparisons (`==`, `<`, `>`, …) also
-work as-is.
+`+` and `-` on Q64.64 values require no helper; addition preserves
+the scale factor. Comparisons (`==`, `<`, `>`, …) also work as-is.
 
-**Overflow rule.** `fmul(a, b)` computes `(a * b) / 2**64` in 256-bit
-modular arithmetic. If `a * b ≥ 2**256` it wraps silently. With Q64.64
-both `a` and `b` must be below `2**128` (real values below `2**64` ≈
-`1.8e19`) for multiplication to be exact. For any sensible financial
-range this is comfortably satisfied. `fdiv` has the same constraint
-on `a * 2**64`.
+**Overflow rule.** `fmul(a, b)` computes `(a * b) / 2**64` in
+256-bit modular arithmetic. If `a * b ≥ 2**256` it wraps silently.
+With Q64.64 both `a` and `b` must be below `2**128` (real values
+below `2**64` ≈ `1.8e19`) for multiplication to be exact. Any
+realistic financial range satisfies this constraint. `fdiv` carries
+the same constraint on `a * 2**64`.
 
 ## Variables
 
@@ -102,7 +101,7 @@ a && b   →   ISZERO(ISZERO(a)) AND ISZERO(ISZERO(b))
 a || b   →   ISZERO(ISZERO(a)) OR  ISZERO(ISZERO(b))
 ```
 
-If you need short-circuit for side-effect safety, use an `if`:
+For short-circuit semantics under side-effect safety, use an `if`:
 
 ```fourier
 if cond1 {
@@ -148,8 +147,8 @@ Function call syntax: `NAME(ARG, ARG, ...)`. Resolved against:
 1. **Builtins** (see [Builtins](#builtins) below)
 2. **Otherwise** → `unknown function 'NAME/ARITY'` compile error.
 
-There is no user-defined `fn` call mechanism in v1. Every `NAME(...)`
-in an expression must be a builtin.
+V1 has no user-defined `fn` call mechanism. Every `NAME(...)` in an
+expression must be a builtin.
 
 ## Builtins
 

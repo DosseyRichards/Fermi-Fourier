@@ -1,9 +1,9 @@
 # Guestbook
 
-An append-only log of short messages, indexed by author. Demonstrates
+An append-only log of short messages indexed by author. Exercises
 storage arrays, mappings as secondary indices, and event emission.
 
-Source: not shipped as a separate `.fou` in v1 — this page walks the
+Source: not shipped as a separate `.fou`. This page walks the
 pattern with the primitives that exist (`array[T]`, `len/push/pop`,
 `emit`, `map[address, uint]`).
 
@@ -60,7 +60,7 @@ contract Guestbook {
 }
 ```
 
-## Walkthrough
+## Annotated source
 
 ### Storage
 
@@ -71,9 +71,9 @@ contract Guestbook {
 | `2` | `authors` | `map[uint, address]` | Secondary index: `position → who signed it` |
 | `3` | `entry_count_by_author` | `map[address, uint]` | How many times each address has signed |
 
-The "message" is a single `uint` (use a SHA3-256 hash of the off-chain
-text). Fourier has no string type; storing variable-length data
-on-chain would require multiple slots — out of scope for this sketch.
+The "message" is a single `uint` — a SHA3-256 hash of the off-chain
+text. Fourier has no string type; storing variable-length data
+on-chain requires multiple slots and is out of scope for this sketch.
 
 ### Selector layout
 
@@ -114,11 +114,7 @@ PUSH 1, SSTORE                    ; persist new length
 PUSH 1, ADD                       ; return value = new_len = old_len + 1
 ```
 
-The event emits a `LOG3` (sig + 2 indexed: `idx`, `by` — `msg_hash`
-is the data arg).
-
-Wait — actually, with 3 args, all 3 become topics. Let me correct:
-`Signed(idx, by, msg_hash)` has 3 args, so:
+The event emits a `LOG4`. With 3 arguments, all three become topics:
 
 - Topic 0: signature hash of `"Signed(uint,address,uint)"`
 - Topic 1: `idx`
@@ -149,9 +145,9 @@ Loop `pop`s entries one at a time. Each `pop` does:
 3. Read element at `base_hash + new_len`.
 4. Clear that element slot (writes 0, which deletes the storage entry).
 
-For a large array, this can easily exhaust gas — `pop` is 4 SSTOREs
-plus an SHA3 per iteration. A real implementation should bound the
-loop:
+For a large array, this can exhaust gas — `pop` is four SSTOREs
+plus an SHA3 per iteration. Production implementations should bound
+the loop:
 
 ```fourier
 let mut_clear: uint = 0;
@@ -161,32 +157,32 @@ while mut_clear < 50 && len(entries) > 0 {
 }
 ```
 
-Note: Fourier has no `mut` keyword — locals are always mutable. The
-above is just for clarity.
+Note: Fourier has no `mut` keyword; locals are always mutable. The
+prefix here exists for clarity only.
 
 ### The `authors` mapping is left stale
 
 After `clear()`, the `entries` array length is 0, but
 `authors[N]` for `N` less than the original length still holds
-the old signer addresses (with the noted exception: `pop` clears the
-**array element** slot, not the `authors` mapping). A real impl would
-either iterate clear `authors[i] = 0` for each `i`, or implement a
-"generation counter" pattern:
+the old signer addresses. `pop` clears the **array element** slot,
+not the `authors` mapping. A production implementation would either
+iterate `authors[i] = 0` for each `i`, or use a generation-counter
+pattern:
 
 ```fourier
 storage generation: uint @ 4;
 storage authors_by_gen: map[uint, map[uint, address]] @ 5;
 ```
 
-Then `clear()` only needs `generation = generation + 1` to invalidate
-the entire mapping at once.
+With this layout, `clear()` only needs `generation = generation + 1`
+to invalidate the entire mapping at once.
 
-## What to try next
+## Variants
 
-- Add the generation-counter pattern above and use it instead of
-  iterating in `clear`.
-- Make entries cap themselves at N (oldest gets popped when a new
-  one is pushed beyond N).
+- Adopt the generation-counter pattern above in place of iteration in
+  `clear`.
+- Cap entries at N by popping the oldest when a new one is pushed
+  beyond N.
 - Add `event Cleared(by: address, removed_count: uint)`.
-- Replace `entry_count_by_author` with computed sums (walk and count)
-  to save a slot, if writes are more common than reads of that count.
+- Replace `entry_count_by_author` with a computed sum (walk and
+  count) to save a slot when writes outweigh reads.

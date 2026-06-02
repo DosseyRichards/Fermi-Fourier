@@ -22,8 +22,8 @@ storage queue:   array[uint] @ 5;
 storage cfg:     Config @ 6;                              // struct (see below)
 ```
 
-`bytes` is not a permitted storage type in v1 — it only appears as a
-function return / parameter / scratch value in memory.
+`bytes` is not a permitted storage type. It appears only as a
+function return, parameter, or scratch value in memory.
 
 ## Reserved slot
 
@@ -83,9 +83,9 @@ slot(len)   == S
 slot(arr[i]) == SHA3-256(pad32(S)) + i
 ```
 
-Emitted by `_emit_array_slot`. Note that overflow risk is real for
-large `i` — collisions with unrelated slots cannot occur, but you can
-exceed `2**256` modulo. With realistic sizes this is not a concern.
+Emitted by `_emit_array_slot`. Overflow risk applies for large `i`;
+collisions with unrelated slots cannot occur, but `2**256` modulo can
+be exceeded. Realistic sizes do not approach this bound.
 
 ### Struct
 
@@ -112,7 +112,7 @@ cfg.paused = true;                  // SSTORE slot 8
 
 ## Collision risks
 
-Two scenarios where you can corrupt state by accident:
+Three scenarios that can corrupt state by accident:
 
 1. **Pinning two storage decls to the same slot** — caught at compile
    time (`storage slot N already used by '<name>'`).
@@ -121,17 +121,17 @@ Two scenarios where you can corrupt state by accident:
    e.g. `struct Config @ 0` (3 fields, uses 0,1,2) and a separate
    `storage other: uint @ 1`. Caught at compile time.
 
-3. **Picking a scalar slot that happens to equal a runtime mapping key**
-   — not detectable statically. Mappings derive their keys via SHA3, so
-   the probability is negligible (2^-256), but pinning a scalar at a
-   slot like `42` is safe forever — no map can ever hash to that slot.
+3. **Picking a scalar slot that equals a runtime mapping key** — not
+   detectable statically. Mappings derive their keys via SHA3, so the
+   probability is negligible (`2^-256`); pinning a scalar at a slot
+   like `42` is safe permanently because no map hashes to that slot.
 
 ## Zero-value clearing
 
-The VM removes entries from the underlying dict when an SSTORE writes
-0 (see `WorldState.storage_set` in `vm/state.py`). That means writing
-0 to a never-written slot is a no-op, and reading from an unset slot
-returns 0 — there is no "unset" sentinel distinct from 0.
+The VM removes entries from the underlying dict when an SSTORE
+writes 0 (see `WorldState.storage_set` in `vm/state.py`). Writing 0
+to a never-written slot is a no-op, and reading from an unset slot
+returns 0. There is no "unset" sentinel distinct from 0.
 
 ## Gas
 

@@ -3,13 +3,13 @@
 An M-of-N approval contract: an action executes only after at least
 `M` distinct signers have voted for it. The stdlib ships a fuller
 [`Multisig`](https://github.com/DosseyRichards/Fermi-Mining-ASIC-Software/blob/main/fourier/stdlib/multisig.fou)
-contract (`fourier/stdlib/multisig.fou`) which uses on-chain PQC
-signature verification; this page walks a simpler "approval via
-direct call" variant suitable for understanding the pattern.
+contract (`fourier/stdlib/multisig.fou`) that uses on-chain PQC
+signature verification; this page covers a simpler "approval via
+direct call" variant of the pattern.
 
-Source: not shipped as a separate `.fou` in v1 — use this page as a
-pattern reference and adapt to your contract. The fuller stdlib
-version is at `fourier/stdlib/multisig.fou`.
+Source: not shipped as a separate `.fou`. Use this page as a pattern
+reference. The fuller stdlib version is at
+`fourier/stdlib/multisig.fou`.
 
 ## Sketch
 
@@ -65,7 +65,7 @@ contract Threshold {
 }
 ```
 
-## Walkthrough
+## Annotated source
 
 ### Storage
 
@@ -81,9 +81,9 @@ contract Threshold {
 | `7` | `approvals` | `id → signer → 0/1` |
 | `8` | `approval_count` | `id → count of approvers` |
 
-Note: `is_signer` and `threshold` are not initialized in this sketch.
-Add an `init()` that seeds them, or a separate `add_signer` /
-`set_threshold` admin path gated by some owner.
+Note: `is_signer` and `threshold` are not initialized in this
+reference. An `init()` seeds them, or a separate `add_signer` /
+`set_threshold` admin path gated by an owner provides the same effect.
 
 ### Selector layout
 
@@ -107,29 +107,30 @@ Add an `init()` that seeds them, or a separate `add_signer` /
 
 ### Important subtleties
 
-- `executed[id] = 1` is set **before** the external `call_b`. This is
-  the checks-effects-interactions pattern: if the callee is malicious
-  and tries to re-enter `execute(id)`, the second invocation hits
-  `require(executed[id] == 0)` and reverts. No need for a separate
-  reentrancy guard.
+- `executed[id] = 1` is set **before** the external `call_b`. This
+  is the checks-effects-interactions pattern: if the callee is
+  malicious and attempts to re-enter `execute(id)`, the second
+  invocation hits `require(executed[id] == 0)` and reverts. No
+  separate reentrancy guard is needed.
 - `approvals[id][caller()]` uses nested mapping syntax. The slot for
   `approvals[id][addr]` is
   `SHA3(addr_word || SHA3(id_word || slot_7_word))`. See
   [Storage / Nested mapping](../language/storage.md#nested-mapping).
 - The empty-calldata `pack_sel(0)` produces a 1-byte `bytes` value
-  containing the byte `0x00`. The callee's dispatcher will not match
-  selector `0x00` (which is reserved for the deploy-time empty-calldata
-  short-circuit), so this only "works" if the callee is an EOA or a
-  contract whose code permits empty calldata. For real cross-contract
-  invocation, pass the target function's selector.
+  containing the byte `0x00`. The callee's dispatcher does not match
+  selector `0x00` (which is reserved for the deploy-time
+  empty-calldata short-circuit), so this path succeeds only when the
+  callee is an EOA or a contract whose code permits empty calldata.
+  For real cross-contract invocation, pass the target function's
+  selector.
 
 ## Upgrading to PQC
 
 The fuller [`Multisig`](https://github.com/DosseyRichards/Fermi-Mining-ASIC-Software/blob/main/fourier/stdlib/multisig.fou)
 contract in `fourier/stdlib/multisig.fou` uses the same pattern but
 verifies each signer's signature on-chain via `verify_sig(...)` and a
-PQC precompile. Use that when you need attestable signatures rather
-than direct calls from signer EOAs.
+PQC precompile. Use it when attestable signatures are required
+rather than direct calls from signer EOAs.
 
 The protocol is:
 
@@ -142,15 +143,15 @@ The protocol is:
 This decouples the signing party from the EOA submitting the
 transaction.
 
-## What to try next
+## Variants
 
-- Add an `init()` that takes no params and seeds threshold/signers
-  from constants.
-- Make signer set mutable via owner-gated `add_signer` /
+- Add an `init()` that takes no parameters and seeds threshold and
+  signers from constants.
+- Make the signer set mutable via owner-gated `add_signer` /
   `remove_signer` calls.
-- Extend `execute` to carry calldata too: store
-  `selector: map[uint, uint]` and `arg: map[uint, uint]`, pass
+- Extend `execute` to carry calldata as well: store
+  `selector: map[uint, uint]` and `arg: map[uint, uint]`, then pass
   `pack_sel(selector[id], arg[id])` to `call_b`.
-- For arbitrary calldata, hash-commit / reveal: store
+- For arbitrary calldata, use hash-commit/reveal: store
   `calldata_hash: map[uint, uint]` and require the executor to supply
-  the calldata bytes at execute time (re-hash to verify).
+  the calldata bytes at execute time (rehashed to verify).

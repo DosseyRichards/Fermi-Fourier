@@ -1,6 +1,6 @@
 # Quick reference
 
-Single-page cheat sheet. For full semantics, follow the links.
+Single-page summary of the language. Each section links to the full semantics.
 
 ## Types
 
@@ -156,7 +156,7 @@ Defined in `fourier/codegen.py::CRYPTO_SCHEMES` and
 ## Storage slot rules
 
 - Each `storage` decl pins a slot with `@ N`.
-- Slot `2**256 - 1` is reserved for the init flag. Using it is a
+- Slot `2**256 - 1` is reserved for the init flag. Pinning it raises a
   compile error.
 - Mapping key: `SHA3-256(key_word || slot_word)` (each 32 bytes,
   concatenated, hashed).

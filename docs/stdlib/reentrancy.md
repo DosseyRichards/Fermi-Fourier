@@ -3,8 +3,8 @@
 Source: `fourier/stdlib/reentrancy_guard.fou`.
 
 A mutex flag that prevents a function from being re-entered during
-its own execution. Set the flag before any external call, clear it
-after.
+its own execution. The flag is set before any external call and
+cleared afterwards.
 
 ## Storage
 
@@ -14,8 +14,8 @@ after.
 | `1` | `balances` | `map[address, uint]` | Example user balances |
 
 The shipped contract includes a `balances` mapping at slot 1 as a
-demonstration. When you inherit-by-copy, keep `_locked` (it's the
-mutex you need) and replace the rest with your own storage.
+reference. Under inherit-by-copy, retain `_locked` (the mutex) and
+replace the rest with the consuming contract's storage.
 
 ## Source
 
@@ -75,14 +75,14 @@ A classic reentrancy attack works like this:
    happened yet) and pays out another 100.
 5. Step 3–4 repeats until victim is drained.
 
-The classic fix is the "checks-effects-interactions" pattern: do all
-state mutations **before** the external call. ReentrancyGuard is a
-belt-and-suspenders second line.
+The classic fix is the "checks-effects-interactions" pattern: perform
+all state mutations **before** the external call. ReentrancyGuard
+provides a defense-in-depth second line.
 
-## Pattern: minimal guard
+## Pattern: guard skeleton
 
-For any function that makes an external `call_b` / `delegatecall_b`,
-copy this skeleton:
+Any function that makes an external `call_b` / `delegatecall_b` may
+adopt this skeleton:
 
 ```fourier
 storage _locked: uint @ 0;
@@ -111,13 +111,13 @@ pub fn risky_action(...) -> uint {
 What it does **not** prevent:
 
 - Read-only reentrancy. A `staticcall_b` into the contract during the
-  external call will still succeed, exposing inconsistent state to
-  the caller. If you care about read-consistency, restructure so the
-  external call happens last.
-- Cross-function attacks where another contract you call back into
-  yourself with a different selector — only if you don't share the
-  `_locked` flag across functions. The standard is to use one flag for
-  every state-mutating function on the contract.
+  external call still succeeds, exposing inconsistent state to the
+  caller. For read-consistency, restructure so the external call
+  happens last.
+- Cross-function attacks where the callee re-enters via a different
+  selector — only when the `_locked` flag is not shared across
+  functions. The standard practice is to use one flag for every
+  state-mutating function on the contract.
 
 ## Gas notes
 
@@ -133,7 +133,7 @@ a reentrancy-induced drain.
 
 ## Combining with Pausable
 
-If you've also copied Pausable (slot 0 = owner, slot 1 = paused),
+When Pausable is also inherited (slot 0 = owner, slot 1 = paused),
 move `_locked` to a free slot:
 
 ```fourier
@@ -143,5 +143,5 @@ storage _locked:  uint    @ 2;       // from ReentrancyGuard, relocated
 storage balances: map[address, uint] @ 3;
 ```
 
-The protected-function pattern remains identical — just reference the
-relocated `_locked`.
+The protected-function pattern is unchanged; only the `_locked`
+reference shifts to the relocated slot.

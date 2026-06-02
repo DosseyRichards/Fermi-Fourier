@@ -2,10 +2,10 @@
 
 Source: `fourier/examples/token.fou`.
 
-A minimal fungible-token contract: total supply, per-address balances,
-a `transfer` function with `require` precondition and a `Transfer`
-event. ERC-20-flavored, but with Fourier's smaller ABI (selectors,
-not 4-byte function IDs).
+A minimal fungible-token contract: total supply, per-address
+balances, a `transfer` function with a `require` precondition and a
+`Transfer` event. ERC-20-flavored, but using the Fourier ABI
+(1-byte selectors rather than 4-byte function IDs).
 
 ## Full source
 
@@ -40,8 +40,8 @@ contract Token {
 }
 ```
 
-Note: this file has no `init`. There's no minting in this version —
-all balances start at 0. To have a deployer-funded version, add:
+Note: this file has no `init`. No minting occurs in this version;
+all balances start at 0. For a deployer-funded version, add:
 
 ```fourier
 fn init() {
@@ -50,7 +50,7 @@ fn init() {
 }
 ```
 
-## Walkthrough
+## Annotated source
 
 ### Storage
 
@@ -74,8 +74,8 @@ Topic 0: `SHA3-256("Transfer(address,address,uint)")`.
 Because `transfer` has 3 args, all three become indexed topics:
 `topic_1 = sender`, `topic_2 = to`, `topic_3 = amount`. Data is empty.
 
-This makes the event efficient to filter — wallets querying for
-inbound transfers to address X can match on `topic_2 == X` without
+This makes the event efficient to filter: wallets querying for
+inbound transfers to address X match on `topic_2 == X` without
 parsing data.
 
 ### `totalSupply() -> uint` (selector `0x01`)
@@ -115,7 +115,7 @@ Then write to `RETURN_AT`, `RETURN 32`.
 
 ### `transfer(to, amount) -> bool` (selector `0x03`)
 
-The interesting one. Five statements:
+Five statements:
 
 ```fourier
 let sender: address = caller();
@@ -144,9 +144,9 @@ Step by step:
    3 indexed args, no data.
 7. `return true;` — PUSH 1, MSTORE 0x40, RETURN 0x40 32.
 
-Note: step 5 re-derives the slot. There's no expression-level caching
-in v1. If you call `balances[to]` repeatedly in the same statement,
-each occurrence triggers a SHA3 + SLOAD.
+Note: step 5 re-derives the slot. V1 performs no expression-level
+caching: each occurrence of `balances[to]` in the same statement
+triggers an SHA3 plus SLOAD.
 
 ## Calldata for each selector
 
@@ -169,17 +169,17 @@ Per-call estimates assuming all storage slots already exist:
 | `balanceOf(addr)` | ~280 (SHA3 + SLOAD + RETURN) |
 | `transfer(to, amount)` | ~12,000 (2× SHA3, 1× SLOAD, 2× SSTORE existing→existing, 1× LOG4, 1× RETURN) |
 
-A `transfer` to a **fresh** recipient — whose `balances[to]` slot is
-zero — costs ~27,000 because the SSTORE upgrades from `zero → non-zero`
-(20,000 gas vs 5,000 gas).
+A `transfer` to a **fresh** recipient — whose `balances[to]` slot
+holds zero — costs ~27,000 because the SSTORE upgrades from
+`zero → non-zero` (20,000 gas vs 5,000 gas).
 
-## What to try next
+## Variants
 
 - Add `init()` to seed `total_supply` and the deployer's balance.
 - Add `approve(spender, amount)` and `transferFrom(from, to, amount)`
-  to match the ERC-20 surface. You'll need a `storage allowances:
+  to match the ERC-20 surface. Requires a `storage allowances:
   map[address, map[address, uint]] @ 2;`.
 - Wrap `transfer` with a pausable guard using
   [`Pausable`](../stdlib/pausable.md).
-- Use `safe_add` / `safe_sub` instead of raw `+` / `-` so overflow
-  reverts instead of wrapping.
+- Use `safe_add` / `safe_sub` in place of raw `+` / `-` to revert on
+  overflow instead of wrapping.

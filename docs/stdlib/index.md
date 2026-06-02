@@ -6,20 +6,20 @@ are full `.fou` source files; SafeMath is intrinsic to the compiler.
 
 ## Inheritance model
 
-Fourier v1 has no inheritance keyword. You use a stdlib contract in
+Fourier v1 has no inheritance keyword. A stdlib contract is reused in
 one of two ways:
 
 1. **Inherit-by-copy.** Paste the contract's storage decls, events,
-   and functions into your own contract. Renumber `@ slot` to avoid
-   collisions with your other storage. This is the dominant pattern.
+   and functions into a consuming contract. Renumber `@ slot` to
+   avoid collisions with other storage. This is the dominant pattern.
 
 2. **Deploy + call.** Deploy the stdlib contract as its own address,
-   then `call_b` / `delegatecall_b` from your contract. Useful when
-   multiple contracts share governance (e.g. one `Timelock` per
-   organization, many target contracts).
+   then `call_b` / `delegatecall_b` from the consuming contract.
+   Useful when multiple contracts share governance (for example, one
+   `Timelock` per organization, many target contracts).
 
-`DELEGATECALL` lets a stdlib contract mutate **your** storage — see
-[`Timelock`](timelock.md) for a concrete pattern where the stdlib
+`DELEGATECALL` lets a stdlib contract mutate the caller's storage.
+See [`Timelock`](timelock.md) for a concrete pattern where the stdlib
 contract is a separately-deployed governance gate.
 
 ## Shipped contracts
@@ -36,12 +36,12 @@ contract is a separately-deployed governance gate.
 
 ## Slot conventions
 
-When you inherit-by-copy, the stdlib contract's `@ slot` numbers
-will collide with your contract's slots unless you re-base them. The
-standard practice is:
+Under inherit-by-copy, the stdlib contract's `@ slot` numbers collide
+with the consuming contract's slots unless rebased. The standard
+practice is:
 
 - Treat the stdlib's slots as a fixed prefix (the low slot numbers).
-- Renumber your own storage decls to sit above them.
+- Renumber the consuming contract's storage decls to sit above them.
 
 Example: copying `Ownable` (uses slot 0) into a `Token` that needs
 `total_supply` and `balances`:
@@ -69,14 +69,14 @@ contract MyToken {
 ## Why these six (and only these)
 
 The set covers the patterns most contracts need at the source level
-without adding any compiler complexity:
+without adding compiler complexity:
 
-- Ownable, Pausable, ReentrancyGuard — the "Solidity ergonomics
-  starter pack." Pure patterns, copy and paste.
-- Multisig — exercise the PQC `verify_sig` builtin for signer
+- Ownable, Pausable, ReentrancyGuard — pure source-level patterns,
+  copy-and-paste.
+- Multisig — exercises the PQC `verify_sig` builtin for signer
   attestation flows.
-- Timelock — make governance changes auditable and delayable.
+- Timelock — makes governance changes auditable and delayable.
 - CryptoRegistry — the chain-level mapping that the multisig and
-  client SDKs need to agree on.
+  client SDKs must agree on.
 
-Anything more complex (oracles, AMMs, NFTs) is left to user code.
+More complex contracts (oracles, AMMs, NFTs) are left to user code.

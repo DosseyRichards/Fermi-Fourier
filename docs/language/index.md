@@ -3,7 +3,7 @@
 The Fourier language reference. Each page below covers one construct,
 grounded in `fourier/parser.py` and `fourier/codegen.py`.
 
-Read in this order if you're new:
+Recommended reading order for new readers:
 
 1. [**Contracts**](contracts.md) — the top-level `contract { ... }`
    block. What goes inside and the `init` function.
@@ -27,5 +27,5 @@ Read in this order if you're new:
 
 The full grammar lives at
 [`fourier/GRAMMAR.md`](https://github.com/DosseyRichards/Fermi-Mining-ASIC-Software/blob/main/fourier/GRAMMAR.md)
-in the repo; this reference is the more detailed, code-grounded
+in the repo. This reference is its more detailed, code-grounded
 companion.

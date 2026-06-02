@@ -26,7 +26,7 @@ brace-delimited body.
 | `storage` decl | 0+ | Each must pin a unique slot via `@ N` |
 | `event` decl | 0+ | Topic = `SHA3-256("Name(t1,t2,...)")` |
 | `struct` decl | 0+ | Used for typed storage layouts |
-| `fn` decl | 0+ | Private helper functions are not callable externally — there's no internal-call mechanism in v1, so private fns are mostly used to define `init` |
+| `fn` decl | 0+ | Private helper functions are not externally callable. V1 has no internal-call mechanism; private `fn`s are used primarily to define `init` |
 | `pub fn` decl | 0+ | Each gets a selector starting at `0x01` |
 
 ## The dispatcher
@@ -136,8 +136,8 @@ with `init_calldata`.
 
 ### Idiom for capturing the deployer
 
-Capture the deployer either via `caller()` (works whether or not init
-takes params) or via an explicit parameter:
+The deployer may be captured via `caller()` (which works whether or
+not init takes parameters) or via an explicit parameter:
 
 ```fourier
 contract Ownable {
@@ -149,8 +149,8 @@ contract Ownable {
 }
 ```
 
-Or with an explicit param (gives the deployer more control over what
-goes into storage):
+Or with an explicit parameter, which gives the deployer more control
+over what enters storage:
 
 ```fourier
 contract Vault {
@@ -164,10 +164,10 @@ contract Vault {
 }
 ```
 
-The first form works because the deploy transaction triggers init in
-the same frame, so `caller()` is the deployer EOA. The second form is
-clearer when initial state needs to come from somewhere other than the
-deployer EOA (a factory contract, a multisig).
+The first form works because the deploy transaction triggers init
+within the same frame, so `caller()` is the deployer EOA. The second
+form is clearer when initial state originates somewhere other than
+the deployer EOA (a factory contract, a multisig).
 
 ## A complete minimum contract
 
@@ -190,4 +190,4 @@ contract Counter {
 ```
 
 Source: `fourier/examples/counter.fou`. See the
-[counter walkthrough](../examples/counter.md) for a line-by-line trace.
+[counter example](../examples/counter.md) for a line-by-line trace.

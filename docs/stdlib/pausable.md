@@ -13,8 +13,8 @@ paused.
 | `0` | `owner` | `address` | Pause controller |
 | `1` | `paused` | `uint` | `0` = running, `1` = paused |
 
-Reserves slots 0 and 1. Your contract's storage must start at slot 2
-or higher.
+Reserves slots 0 and 1. Inheriting contracts must start their
+storage at slot 2 or higher.
 
 ## Source
 
@@ -61,8 +61,8 @@ contract Pausable {
 
 ## Usage: inherit-by-copy
 
-Copy the storage decls and the pause/unpause functions; gate each
-mutating function with `require(paused == 0)`:
+Copy the storage decls and the pause/unpause functions, then gate
+each mutating function with `require(paused == 0)`:
 
 ```fourier
 contract Token {
@@ -101,16 +101,16 @@ contract Token {
 
 ## Pattern: pause read paths too?
 
-Whether to gate read-only functions on `paused` is application-specific.
-Standard practice is to leave reads open (you usually want users to
-inspect their balance even when transfers are paused) and only gate
-mutating paths.
+Whether to gate read-only functions on `paused` is
+application-specific. Standard practice is to leave reads open
+(users typically need to inspect their balance even when transfers
+are paused) and gate only mutating paths.
 
 ## Combining with Ownable
 
-Pausable's owner field is the same slot as Ownable's. If you want both
-`transfer_ownership` and `pause`, copy Ownable's functions in
-alongside Pausable's — they share storage slot 0:
+Pausable's owner field is the same slot as Ownable's. To use both
+`transfer_ownership` and `pause`, copy Ownable's functions alongside
+Pausable's; they share storage slot 0:
 
 ```fourier
 storage owner:  address @ 0;       // from both Pausable and Ownable
@@ -131,8 +131,8 @@ pub fn pause() {                                     // Pausable
 
 ## Events
 
-Pausable as shipped does not emit events. Add them in your copy if
-you need indexers to track pause state:
+Pausable as shipped does not emit events. Add them in the inherited
+copy when indexers must track pause state:
 
 ```fourier
 event Paused(by: address);

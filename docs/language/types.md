@@ -48,8 +48,8 @@ struct Config {
 storage cfg: Config @ 6;
 ```
 
-Structs are flat record types over primitive fields. Used as storage
-types only in v1. Field `i` occupies slot `base + i`.
+Structs are flat record types over primitive fields. They appear as
+storage types only. Field `i` occupies slot `base + i`.
 
 ## Tuples
 
@@ -66,10 +66,10 @@ Tuples appear only as:
 - Return types of a `pub fn`
 - The RHS of a `let (...) = (...)`
 
-A tuple literal in any other expression position raises `CompileError`
-("tuple literal only allowed in `return (...)` or `let (...) = (...)`").
-Tuple destructuring requires a literal tuple RHS in v1 — you cannot
-destructure a cross-contract call's return.
+A tuple literal in any other expression position raises
+`CompileError` ("tuple literal only allowed in `return (...)` or
+`let (...) = (...)`"). Tuple destructuring requires a literal tuple
+RHS; a cross-contract call's return cannot be destructured.
 
 ## String literals
 
@@ -97,14 +97,14 @@ pub fn h() -> uint {
 Rules:
 
 - UTF-8 encoded source bytes.
-- Max 32 bytes — longer literals are a lex error.
-- No escape sequences in v1 (no `\"`, no `\\`, no `\n`).
+- Max 32 bytes; longer literals are a lex error.
+- No escape sequences (no `\"`, no `\\`, no `\n`).
 - No newlines inside a literal.
 - The empty string `""` is `0`.
 
-Strings are typed as `uint` after parsing — there is no separate
-`string` or `bytes32` type; they all collapse to `uint` in the
-expression layer.
+Strings are typed as `uint` after parsing. No separate `string` or
+`bytes32` type exists; all collapse to `uint` in the expression
+layer.
 
 ## What's NOT supported
 
@@ -114,10 +114,10 @@ expression layer.
 - **No fixed-size byte arrays** (`bytes32` etc). Use `uint` for any
   32-byte value; use `bytes` for variable-length.
 - **No generics.** Each mapping spells out its key and value type.
-- **No type aliases.** Repeat the type wherever it appears.
+- **No type aliases.** The type is repeated wherever it appears.
 - **No nullable / optional** wrappers. Use a separate `bool` or rely
   on the natural-zero convention (uninitialized storage reads 0).
-- **`bytes` cannot be stored.** It's a memory-only type.
+- **`bytes` cannot be stored.** It is a memory-only type.
 
 ## Address vs uint enforcement
 
@@ -131,9 +131,9 @@ type mismatch: cannot apply '<op>' between 'address' and 'uint'
 (address values aren't arithmetic)
 ```
 
-The check sees only locally-typed values (locals declared with a
-type, params). Storage reads return `_` (unknown), so mixed comparisons
-involving storage variables compile silently. See
+The check observes only locally-typed values (locals declared with a
+type, parameters). Storage reads return `_` (unknown), so mixed
+comparisons involving storage variables compile silently. See
 [Address type](address.md) for the full discussion.
 
 `==` and `!=` between `address` and other types are always allowed.
@@ -155,5 +155,5 @@ let d: uint = 0xff;
 
 - Underscores are ignored inside numeric literals.
 - Hex literals are recognized via `0x` / `0X` prefix.
-- All literals are `uint`. There is no negative literal — `-1` is a
+- All literals are `uint`. There is no negative literal; `-1` is a
   unary minus over the literal `1`, producing `2**256 - 1`.

@@ -10,7 +10,7 @@ big-endian representation of the underlying 256-bit word.
 | `uint` | 32 | Big-endian unsigned integer, left-zero-padded to 32 bytes |
 | `address` | 32 | The 20 address bytes right-aligned (occupy bytes 12–31); top 12 bytes zero |
 | `bool` | 32 | `0x00...01` for true, `0x00...00` for false |
-| `bytes` | (not encodable as calldata arg in v1) | — |
+| `bytes` | (not encodable as a calldata argument) | — |
 
 There is no padding ambiguity: every type fits in a 32-byte word and
 is read via `CALLDATALOAD offset` in the function prologue.
@@ -116,21 +116,21 @@ Concatenated, this is a 65-byte calldata blob. As hex:
 
 ## Not encodable as a calldata arg: `bytes`
 
-Variable-length `bytes` cannot appear as a function parameter — the
-parser/codegen will accept `bytes` in a parameter position only via
-the cross-contract calldata path (where `pack_sel` builds the
-calldata as a `bytes` value in memory). `pub fn` parameters
-themselves are required to fit in a single 32-byte word, so types
-larger than 32 bytes aren't supported at the entry-point boundary.
+Variable-length `bytes` does not appear as a function parameter. The
+parser and codegen accept `bytes` in a parameter position only via
+the cross-contract calldata path, where `pack_sel` builds the
+calldata as a `bytes` value in memory. `pub fn` parameters must fit
+in a single 32-byte word, so types larger than 32 bytes are not
+supported at the entry-point boundary.
 
-If you need variable-length input from off-chain, two workarounds:
+Two workarounds exist for variable-length input from off-chain:
 
-1. **Pass a hash + a separate storage upload.** Send a SHA3-256 hash
-   as a `uint` argument; require the off-chain caller to have
-   previously stored the actual payload.
+1. **Pass a hash plus a separate storage upload.** Send a SHA3-256
+   hash as a `uint` argument; require the off-chain caller to have
+   previously stored the payload.
 
-2. **Use multiple `uint` args** to pack short byte strings (up to 32
-   bytes per arg).
+2. **Use multiple `uint` arguments** to pack short byte strings (up
+   to 32 bytes per argument).
 
 ## Multi-arg encoding from inside Fourier
 

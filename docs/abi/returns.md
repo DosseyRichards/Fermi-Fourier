@@ -127,24 +127,23 @@ To decode:
 When a sub-call returns, the VM copies up to `out_len` bytes of the
 callee's return data to `out_off` in the caller's memory. The
 Fourier codegen for `call_b` / `delegatecall_b` / `staticcall_b` sets
-`out_off = RETURN_AT (0x40)` and `out_len = 32`. So **only the first
-32 bytes** of the callee's return are available — that's enough for a
+`out_off = RETURN_AT (0x40)` and `out_len = 32`. **Only the first 32
+bytes** of the callee's return are available — sufficient for a
 single `uint`, `address`, or `bool` result.
 
 Fourier v1 does not expose `MLOAD` directly, so reading the callee's
-return word from Fourier source isn't possible without a workaround.
-Common patterns:
+return word from Fourier source requires a workaround. Common patterns:
 
-1. **Use the call-success word as your only signal.** Have the callee
-   revert on failure; if the call returns `1`, the callee succeeded
-   and you don't need its return.
+1. **Treat the call-success word as the only signal.** Have the
+   callee revert on failure; if the call returns `1`, the callee
+   succeeded and the return value is unnecessary.
 
-2. **Wrap the call in a hand-rolled assembly snippet.** If you need
-   the callee's return, drop down to bytecode (outside Fourier's
-   source surface).
+2. **Wrap the call in a hand-rolled assembly snippet.** Drop to
+   bytecode (outside the Fourier source surface) when the callee's
+   return word is required on-chain.
 
-3. **Use receipt parsing off-chain.** Return-data-on-call patterns
-   shine when the consumer is off-chain rather than on-chain.
+3. **Parse the receipt off-chain.** Return-data-on-call patterns are
+   most useful when the consumer lives off-chain.
 
 ## Examples
 

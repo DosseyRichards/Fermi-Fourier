@@ -1,9 +1,9 @@
 # SafeMath
 
-SafeMath is not a separately deployable contract — it's a set of
-compiler-level builtins. Each `safe_*` call expands inline to bytecode
-that performs the underlying op and reverts on overflow, underflow, or
-division by zero.
+SafeMath is not a separately deployable contract; it is a set of
+compiler-level builtins. Each `safe_*` call expands inline to
+bytecode that performs the underlying op and reverts on overflow,
+underflow, or division by zero.
 
 | Builtin | Semantics | Reverts when |
 |---|---|---|
@@ -17,10 +17,11 @@ Source: `_emit_expr` for the `safe_*` builtin names in
 
 ## Why builtins, not a stdlib contract
 
-EVM-style SafeMath libraries exist because Solidity 0.8 only added
-checked-by-default arithmetic recently. Fourier v1 keeps the raw
-`+ - * /` opcodes wraparound / divide-to-zero (matching the underlying
-VM semantics in `vm/machine.py`), so users opt into checks per-call.
+EVM-style SafeMath libraries exist because checked-by-default
+arithmetic arrived only in Solidity 0.8. Fourier keeps the raw
+`+ - * /` opcodes wraparound / divide-to-zero (matching the
+underlying VM semantics in `vm/machine.py`); checks are opt-in per
+call.
 
 Compiling to inlined opcodes — rather than a callout to a deployed
 library — avoids cross-contract call cost (no `CALL`, no gas
@@ -66,28 +67,28 @@ Reverts if `y == 0`; otherwise returns `x / y` (integer division —
 remainder truncated).
 
 Note: the raw `/` operator returns `0` when dividing by zero. Use
-`safe_div` if you want to surface that as an error instead of silently
-producing 0.
+`safe_div` to surface that as an error instead of silently producing
+0.
 
 ## Gas cost
 
-Each `safe_*` expands to ~10–20 opcodes (arithmetic + a comparison + a
-conditional jump + a possible revert). Rough per-call cost in the
-~30–80 gas range. Cheaper than a sub-call, more expensive than the raw
+Each `safe_*` expands to ~10–20 opcodes (arithmetic, a comparison, a
+conditional jump, a possible revert). Approximate per-call cost is
+30–80 gas — cheaper than a sub-call, more expensive than the raw
 operator.
 
 ## When to use
 
 - Token balance updates (overflow on add, underflow on sub).
 - Reward / fee accumulations.
-- Anywhere your application semantics treat overflow as a bug, not as
-  modular arithmetic.
+- Anywhere application semantics treat overflow as a bug rather than
+  as modular arithmetic.
 
 Skip when:
 
-- You're computing slot derivations, hashes, or bitwise mixing — wrap is
-  the desired behavior.
-- You're inside a tight loop where every gas counts.
+- Computing slot derivations, hashes, or bitwise mixing, where
+  wraparound is the desired behavior.
+- Inside a tight loop where every gas unit counts.
 
 ## Example
 
@@ -108,5 +109,5 @@ contract Bank {
 }
 ```
 
-If a `transfer` would overflow the recipient or underflow the sender,
-the whole tx reverts and balances are unchanged.
+If a `transfer` would overflow the recipient or underflow the
+sender, the whole tx reverts and balances remain unchanged.

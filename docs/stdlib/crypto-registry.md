@@ -2,18 +2,18 @@
 
 Source: `fourier/stdlib/crypto_registry.fou`.
 
-The authoritative on-chain mapping from `scheme_id` to PQC precompile
-address. Designed to be deployed once per chain and owned by a
-[Timelock](timelock.md) for governance.
+The on-chain mapping from `scheme_id` to PQC precompile address.
+Deployed once per chain and held by a [Timelock](timelock.md) for
+governance.
 
 ## Storage
 
 | Slot | Name | Type | Purpose |
 |---|---|---|---|
-| `0` | `owner` | `address` | Initial deployer; transferred to Timelock |
+| `0` | `owner` | `address` | Initial deployer; transferred to the Timelock |
 | `1` | `scheme_to_addr` | `map[uint, uint]` | `scheme_id → precompile_addr` |
 
-Reserves slots 0–1.
+Slots 0–1 are reserved.
 
 ## Source
 
@@ -72,98 +72,102 @@ contract CryptoRegistry {
 
 ## Pre-registered schemes
 
-At deploy time, init populates:
+At deploy time, `init` populates:
 
 | `scheme_id` | `precompile_addr` | Algorithm |
 |---|---|---|
-| `1` | `2` (i.e. `0x02`) | ML-DSA-87 (FIPS 204) |
-| `2` | `3` (i.e. `0x03`) | SLH-DSA-SHA2-128s (FIPS 205) |
+| `1` | `2` (`0x02`) | ML-DSA-87 (FIPS 204) |
+| `2` | `3` (`0x03`) | SLH-DSA-SHA2-128s (FIPS 205) |
 
 These match the constants in `fourier/codegen.py::CRYPTO_SCHEMES` and
 the precompile addresses in `vm/precompiles.py`.
 
-## Why this exists
+## Role
 
 The compiler hard-codes `CRYPTO_SCHEMES` because `verify_sig(scheme_id,
-...)` needs a compile-time literal `scheme_id` to select the right
-precompile address. The CryptoRegistry serves a different role: it's
-the **public, on-chain** record of which scheme ids are valid, so:
+...)` requires a compile-time literal `scheme_id` to select the
+precompile address. The CryptoRegistry serves a complementary role: it
+is the **public, on-chain** record of which scheme identifiers are
+valid, so:
 
-1. Clients and indexers can look up `scheme_id → precompile_addr`
+1. Clients and indexers can resolve `scheme_id → precompile_addr`
    without trusting compiler internals.
-2. Governance can add new schemes (after the operator network upgrades
-   their VMs to recognize the new precompile) via Timelock proposals.
-3. Retired schemes (e.g. one broken by a future cryptanalysis attack)
-   can be removed from the registry so client SDKs stop generating
+2. Governance can add new schemes — after node operators upgrade their
+   VMs to recognize the precompile — through Timelock proposals.
+3. Retired schemes can be removed so client SDKs stop emitting
    signatures with them.
 
-The registry **does not** prevent contracts from using an unknown or
-retired scheme at compile time — that's a compiler-level decision. But
-clients querying the registry will see what the chain considers
-valid.
+The registry does **not** prevent contracts from referencing an
+unknown or retired scheme at compile time; that is a compiler-level
+decision. Clients querying the registry observe what the chain
+considers authoritative.
 
 ## Governance flow
 
 ```text
-1. BDFL deploys CryptoRegistry.
-   init() sets owner = BDFL, registers schemes 1 + 2.
+1. Foundation operator deploys CryptoRegistry.
+   init() sets owner = operator and registers schemes 1 + 2.
 
-2. BDFL deploys Timelock.
-   init() sets owner = BDFL, delay = 14d, grace = 14d.
+2. Foundation operator deploys Timelock.
+   init() sets owner = operator, delay = 14 days, grace = 14 days.
 
-3. BDFL calls registry.transfer_ownership(timelock_address).
-   Now the registry is governed by the Timelock.
+3. Foundation operator calls registry.transfer_ownership(timelock).
+   The registry is now governed by the Timelock.
 
-4. BDFL queues a registry update through the Timelock:
+4. Foundation operator queues a registry update through the Timelock:
    timelock.queue(
        target   = registry_addr,
        value    = 0,
-       selector = 0x01,            // set_scheme
-       arg      = ???,             // need to pack (scheme_id, precompile_addr)
+       selector = 0x01,                // set_scheme
+       arg      = packed_args,         // see "Packing two arguments" below
        eta      = now + 14 days
    )
 
-5. After 14 days, anyone calls timelock.execute(id).
-   The Timelock calls registry.set_scheme(scheme_id, precompile)
-   with the Timelock as caller — passes the owner check.
+5. After the delay window, anyone calls timelock.execute(id).
+   The Timelock invokes registry.set_scheme(scheme_id, precompile)
+   with the Timelock as caller, satisfying the owner check.
 ```
 
-Note step 4's caveat: `set_scheme` takes **two** arguments, but the
-shipped Timelock supports proposals with only one arg
-(`p_arg: map[uint, uint]`). To make this work in v1:
+### Packing two arguments
 
-- Pack both args into a single 32-byte word (e.g. `(scheme_id << 160)
-  | precompile_addr`) and have `set_scheme` unpack.
-- Or extend the Timelock to store multiple args per proposal.
+`set_scheme` takes two arguments; the shipped Timelock stores one
+argument per proposal (`p_arg: map[uint, uint]`). Two compatible
+patterns:
 
-A two-arg Timelock variant is on the
-[follow-up list](https://github.com/DosseyRichards/Fermi-Fourier/blob/main/TODO.md);
-for now, governance updates use a custom Timelock variant or a
-separate "two-arg setter" wrapper contract.
+- **Argument packing.** Pack both values into a single 32-byte word —
+  for example, `(scheme_id << 160) | precompile_addr` — and unpack
+  inside a wrapper function called by the Timelock.
+- **Wrapper contract.** Deploy a small contract whose single
+  `set(scheme_id, precompile)` function the Timelock calls; the
+  wrapper unpacks and re-calls `set_scheme` on the registry.
+
+A multi-argument Timelock variant is a planned addition.
 
 ## Adding a new scheme
 
-The compiler must learn the new scheme before contracts can use
+The compiler must recognize the new scheme before contracts can invoke
 `verify_sig(N, ...)`. The end-to-end procedure:
 
-1. Implement the new PQC algorithm in `vm/precompiles.py`. Reserve a
-   precompile address (next free byte) and a gas cost.
+1. Implement the algorithm in `vm/precompiles.py`. Reserve a
+   precompile address and a gas cost.
 2. Add the `(scheme_id, precompile_addr)` pair to
    `fourier/codegen.py::CRYPTO_SCHEMES`.
-3. Node operators upgrade to the new VM version (the ultimate veto —
-   nodes refusing the upgrade won't honor the new precompile).
-4. Governance queues `registry.set_scheme(N, addr)` in the Timelock.
-5. After the delay, the registry reflects the new scheme; clients
-   reading the registry start trusting `scheme_id = N`.
+3. Node operators upgrade to the new VM release. Operators are the
+   final veto — nodes that decline the upgrade do not honor the new
+   precompile.
+4. Governance queues `registry.set_scheme(N, addr)` through the
+   Timelock.
+5. After the delay window, the registry reflects the new scheme and
+   clients reading the registry begin trusting `scheme_id = N`.
 
-The registry's role is **declarative** — it's the canonical record;
-actual on-chain verification still requires nodes to ship the
-precompile in their VM binary. The dual veto (operators + governance)
-is intentional.
+The registry is **declarative**: on-chain verification still requires
+nodes to ship the precompile in their VM binary. The dual veto
+between node operators and on-chain governance is intentional.
 
-## Inherit-by-copy notes
+## Composition notes
 
-CryptoRegistry is small (2 slots, 5 public functions) but rarely
-useful to inherit-by-copy — its purpose is to be a single canonical
-record per chain. Deploy it once and reference its address from any
-contract that needs to look up scheme metadata.
+CryptoRegistry is intentionally small — two storage slots and five
+public functions — and is not designed to be inherited or copied. Its
+purpose is to serve as a single canonical record per chain. Deploy it
+once and reference its address from contracts that need to resolve
+scheme metadata.

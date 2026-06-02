@@ -175,12 +175,12 @@ Return: 32 bytes, `0x00..01` for valid, `0x00..00` for invalid.
 
 If the calldata is malformed (truncated headers or inconsistent
 lengths), the precompile returns `0x00..00` (invalid) but does **not**
-revert — that way contracts get a clean "no" answer rather than
-having to handle a revert.
+revert. Contracts receive a clean "no" answer rather than handling a
+revert path.
 
-Note on SLH-DSA: requires `pqcrypto.sign.sphincs_sha2_128s_simple` to
-be installed on the node. If not available, the precompile returns
-`0` (reject all signatures) — fail-safe default.
+Note on SLH-DSA: requires `pqcrypto.sign.sphincs_sha2_128s_simple` on
+the node. If the dependency is absent, the precompile returns `0`
+(rejects all signatures) as a fail-safe default.
 
 ## Frame model
 
@@ -226,8 +226,8 @@ class Account:
 ```
 
 Writing 0 to a storage slot **deletes** the entry; subsequent SLOAD
-returns 0 (the natural-zero default). This is why uninitialized slots
-read as 0 — there's no separate "unset" sentinel.
+returns 0 (the natural-zero default). Uninitialized slots read as 0;
+there is no separate "unset" sentinel.
 
 ## Snapshot / revert
 
@@ -246,8 +246,8 @@ except VMError as e:
     return ExecutionResult(success=False, gas_used=gas_limit, ...)  # consume all
 ```
 
-The deep-copy is expensive but conceptually simple. There's no MPT,
-no journaled changes — just snapshot/restore on Python dicts.
+The deep-copy is expensive but conceptually simple. There is no MPT
+and no journaled change log — only snapshot/restore on Python dicts.
 
 ## Deploy
 
@@ -285,7 +285,7 @@ new contract with empty calldata, which triggers the init prologue:
 3. The empty-calldata short-circuit halts the contract before the
    dispatcher tries to read a selector.
 
-This makes init atomic with deploy — there's no race window between
+This makes init atomic with deploy: there is no race window between
 "contract exists" and "contract initialized."
 
 ## Execution loop summary
@@ -298,5 +298,5 @@ opcode either:
 - Issues a sub-call (which recursively `_exec`s a new frame).
 - Halts the frame (`STOP`, `RETURN`, `REVERT`) or raises a `VMError`.
 
-There is no JIT, no superinstructions, no opcode fusion. The code is
-straightforward to audit; speed is a secondary concern in v1.
+There is no JIT, no superinstructions, no opcode fusion. The
+implementation prioritizes auditability over throughput in v1.

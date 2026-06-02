@@ -1,6 +1,6 @@
 # Compiler
 
-The Fourier compiler lives at `fourier/` in the source tree. It's a
+The Fourier compiler lives at `fourier/` in the source tree. It is a
 single Python package with one public entry point:
 
 ```python
@@ -9,7 +9,7 @@ from fourier import compile_source
 bytecode: bytes = compile_source(source_text)
 ```
 
-That's the whole API surface. Everything else is internal.
+This constitutes the entire public API; everything else is internal.
 
 ## Pipeline
 
@@ -50,7 +50,7 @@ each stage can produce.
 
 ## CLI
 
-There is no standalone CLI in v1. You compile from Python:
+V1 has no standalone CLI. Compilation runs from Python:
 
 ```python
 from fourier import compile_source
@@ -64,17 +64,17 @@ with open("counter.bin", "wb") as f:
     f.write(bytecode)
 ```
 
-A standalone `fourierc` binary is on the
-[follow-up list](https://github.com/DosseyRichards/Fermi-Fourier/blob/main/TODO.md).
-Until it lands, use the `python -c '…'` one-liners on the
-[CLI usage](cli.md) page — they're terminal-friendly and produce
-identical bytecode.
+### Future extensions
+
+A standalone `fourierc` binary is a planned addition. Until it ships,
+the `python -c '…'` one-liners on the [CLI usage](cli.md) page run
+from any terminal and produce identical bytecode.
 
 ## Subpages
 
-- [**CLI usage**](cli.md) — how to compile a `.fou` file without
-  writing Python
-- [**Python API**](python.md) — `compile_source`, plus the internal
-  hooks if you need lex/parse/codegen access
+- [**CLI usage**](cli.md) — compiling a `.fou` file without writing
+  Python
+- [**Python API**](python.md) — `compile_source` and the internal
+  hooks for lex/parse/codegen access
 - [**Error reference**](errors.md) — every error message the compiler
   can produce, with cause and fix

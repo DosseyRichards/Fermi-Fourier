@@ -4,7 +4,7 @@ Source: `fourier/stdlib/multisig.fou`.
 
 An M-of-N approval contract where signers vote by submitting proposal
 approvals. The shipped version uses direct on-chain approval rather
-than off-chain signatures, but is designed to be extended with
+than off-chain signatures. The design supports extension with
 `verify_sig(1, pk, hash, sig)` for full PQC attestation.
 
 ## Storage
@@ -22,7 +22,8 @@ than off-chain signatures, but is designed to be extended with
 | `8` | `proposal_signatures` | `map[uint, map[address, uint]]` | |
 | `9` | `proposal_sig_count` | `map[uint, uint]` | |
 
-Reserves slots 0–9. Your storage starts at 10+ if inheriting.
+Reserves slots 0–9. Inheriting contracts must start their storage at
+slot 10 or higher.
 
 ## Source
 
@@ -94,8 +95,8 @@ contract Multisig {
 
 ## Initialization
 
-The shipped contract has **no `init`**. You're expected to populate
-`threshold`, `signer_count`, `signers`, and `is_signer` via an external
+The shipped contract has **no `init`**. `threshold`, `signer_count`,
+`signers`, and `is_signer` must be populated via an external
 initialization step before any proposals are created. A real
 deployment would add:
 
@@ -112,22 +113,23 @@ fn init() {
 }
 ```
 
-Note: Fourier has no literal address syntax in v1 — you'd embed
-literals as hex `uint`s. Practical approach is to have an admin
-`add_signer(addr)` function gated by an owner, called once-per-signer
-after deploy.
+Note: Fourier has no literal address syntax; embed literals as hex
+`uint`s. The practical approach is an admin `add_signer(addr)`
+function gated by an owner, called once per signer after deploy.
 
 ## Workflow
 
-1. **Setup**: deploy contract, set threshold + signer list (via admin
-   paths you add, not shipped).
+1. **Setup**: deploy the contract, set threshold and signer list
+   (via admin paths added by the consumer; not shipped).
 2. **Propose**: a signer calls `propose(target, value)` to create a
-   pending proposal. Returns the proposal id.
+   pending proposal. The function returns the proposal id.
 3. **Sign**: each approving signer calls `sign(id)`. The contract
-   tracks unique signers (re-signing reverts) and increments the count.
-4. **Execute**: once `proposal_sig_count[id] >= threshold`, anyone can
-   call `execute(id)`. The contract sets the executed flag, sends
-   `value` WAVE to `target` via `call_b`, and emits an event.
+   tracks unique signers (re-signing reverts) and increments the
+   count.
+4. **Execute**: once `proposal_sig_count[id] >= threshold`, any
+   caller can invoke `execute(id)`. The contract sets the executed
+   flag, sends `value` WAVE to `target` via `call_b`, and emits an
+   event.
 
 The executed flag is set **before** the external call —
 checks-effects-interactions. A reentrant `execute(id)` from the
@@ -137,23 +139,22 @@ callee fails the `executed == 0` check.
 
 - **No on-chain signature verification.** Signers approve by calling
   `sign(id)` directly from their EOA. To use PQC signatures, the
-  contract would need to accept a `(pk, sig)` pair on each
-  `sign(id, pk, sig)` call and verify with `verify_sig(1, pk,
-  proposal_hash, sig)`.
+  contract must accept a `(pk, sig)` pair on each `sign(id, pk, sig)`
+  call and verify with `verify_sig(1, pk, proposal_hash, sig)`.
 - **No calldata in proposals.** `execute` calls the target with
   empty calldata (`pack_sel(0)`), so only plain WAVE transfers are
-  supported. To support arbitrary calls, add `proposal_selector` and
-  `proposal_arg` mappings, then pass `pack_sel(proposal_selector[id],
-  proposal_arg[id])`.
-- **Signer set is immutable after init.** Add admin paths if you need
-  to rotate signers.
+  supported. Arbitrary calls require adding `proposal_selector` and
+  `proposal_arg` mappings, then passing
+  `pack_sel(proposal_selector[id], proposal_arg[id])`.
+- **Signer set is immutable after init.** Add admin paths for signer
+  rotation.
 
 The fuller [Timelock](timelock.md) contract supports calldata in
-proposals; pattern that approach to extend `Multisig`.
+proposals; apply that approach to extend `Multisig`.
 
 ## Upgrade to full PQC
 
-The pattern for verifying signatures off-chain:
+The pattern for verifying signatures on-chain:
 
 ```fourier
 pub fn sign(id: uint, pk: bytes, sig: bytes) -> uint {

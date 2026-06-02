@@ -26,17 +26,17 @@ let bal: uint = balances[caller()];
 A fresh memory slot is allocated for each `let`; see
 [Functions / Locals](functions.md#function-locals).
 
-Tuple destructuring (literal RHS in v1):
+Tuple destructuring requires a literal RHS:
 
 ```fourier
 let (a, b): (uint, uint) = (10, 20);
 ```
 
-The compiler emits one `MSTORE` per name. Non-literal RHS — e.g.
-binding a cross-contract return — is rejected with:
+The compiler emits one `MSTORE` per name. A non-literal RHS — for
+example, binding a cross-contract return — is rejected with:
 
 ```
-tuple destructuring requires a literal tuple RHS in v1
+tuple destructuring requires a literal tuple RHS
 ```
 
 ## Assignment
@@ -109,8 +109,8 @@ JUMP
 end:
 ```
 
-There is no `break`, no `continue`. Exit by branching out via `return`
-or by making the condition false.
+There is no `break` and no `continue`. Exit by branching out via
+`return` or by making the condition false.
 
 ## `return`
 
@@ -181,8 +181,8 @@ call_b(target, cd, 0, 50000);     // return value discarded
 inc_counter();                     // hypothetical — would be discarded
 ```
 
-The expression is evaluated and its top-of-stack result is popped. Used
-for side-effecting calls whose return you don't care about.
+The expression is evaluated and its top-of-stack result is popped.
+Used for side-effecting calls whose return value is discarded.
 
 ## Array builtins
 

@@ -39,7 +39,8 @@ let diff: bool = caller() != owner;
 ```
 
 The compile-time check is limited to **typed locals**. Storage reads
-return `_` (unknown), so this passes the static check silently:
+return `_` (unknown), so the following passes the static check
+silently:
 
 ```fourier
 let counter: uint = some_storage_uint + 1;       // ok if some_storage_uint is uint
@@ -61,11 +62,11 @@ Writing `0` to a `storage owner: address` slot deletes the entry from
 storage (the VM treats writing zero as a delete).
 
 `vm/state.py` has no concept of a "burn" or "null" address — `0x00 *
-20` is an ordinary account that simply receives any funds sent to it.
-The chain-level convention (per the
+20` is an ordinary account that receives any funds sent to it. The
+chain-level convention (per the
 [WaveLedger transaction docs](https://docs.fermi.world/reference/tx/#sentinel-senders-recipients))
-treats `"0" * 32` as a burn convention; that's a docs convention, not
-a VM rule.
+treats `"0" * 32` as a burn convention; this is a docs convention,
+not a VM rule.
 
 ## Address-producing builtins
 
@@ -74,10 +75,13 @@ a VM rule.
 | `caller()` | Immediate caller (msg.sender) | `CALLER` |
 | `origin()` | Tx originator (tx.origin) | `ORIGIN` |
 
-There is no `address(this)` builtin in v1, but the VM exposes
-`ADDRESS` (0x70). It's not currently surfaced to Fourier — tracked
-on the
-[follow-up list](https://github.com/DosseyRichards/Fermi-Fourier/blob/main/TODO.md).
+V1 exposes no `address(this)` builtin. The VM defines `ADDRESS`
+(0x70), but it is not surfaced to Fourier.
+
+### Future extensions
+
+Surfacing the VM's `ADDRESS` opcode as a Fourier builtin is a planned
+addition.
 
 ## Comparing addresses
 
@@ -109,10 +113,10 @@ collision risk.
 
 ## Address from a uint
 
-If you need to convert a runtime `uint` to address (e.g. from a
-calldata-supplied recipient), no cast is required — `address` and
-`uint` share the same runtime representation. Just bind to an
-`address`-typed local:
+Converting a runtime `uint` to an address (for example, a
+calldata-supplied recipient) requires no cast: `address` and `uint`
+share the same runtime representation. Bind to an `address`-typed
+local:
 
 ```fourier
 pub fn pay(to: address, amount: uint) {
@@ -126,10 +130,10 @@ check is purely static.
 
 ## tx.origin caveat
 
-`origin()` returns the EOA that signed the tx — the very first caller
-in the chain. Use with care: any contract you call can see your
-origin, and code that uses `origin()` as an authorization check is
-vulnerable to phishing-style attacks (a malicious intermediate
-contract can do something on your behalf because your origin matches).
-Prefer `caller()` for authorization, except when you specifically
-need to recover the EOA at the bottom of the call stack.
+`origin()` returns the EOA that signed the tx — the first caller in
+the chain. Use with care: any called contract observes the origin,
+and code that uses `origin()` as an authorization check is vulnerable
+to phishing-style attacks (a malicious intermediate contract can act
+on behalf of the origin because the origin matches). Prefer
+`caller()` for authorization; use `origin()` only when recovering the
+EOA at the bottom of the call stack is required.

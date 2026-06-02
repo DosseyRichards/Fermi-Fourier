@@ -19,11 +19,10 @@ function".
 | Bytecode emitted | Only if name is `init` | Yes |
 | Allowed signatures | `init(...) { ... }` — params allowed, no return | Any |
 
-Private functions other than `init` compile to nothing in v1 — there's
-no internal-call mechanism, so they're dead code. The grammar permits
-them, but the codegen path that walks `c.functions` only emits bodies
-for `is_pub` functions and inline-includes `init`'s body in the
-prologue.
+Private functions other than `init` compile to nothing in v1. With
+no internal-call mechanism, they are dead code. The grammar permits
+them, but the codegen path that walks `c.functions` emits bodies only
+for `is_pub` functions and inlines `init`'s body in the prologue.
 
 ## Selector assignment
 
@@ -40,13 +39,13 @@ for fn in contract.functions:
 - Selectors are assigned in **declaration order**.
 - The first `pub fn` gets `0x01`. Reordering source = breaking ABI.
 - `init` is **not** included; it has no selector.
-- There is no `0x00` selector — that would collide with the
+- There is no `0x00` selector; it would collide with the
   empty-calldata deploy short-circuit.
 - Maximum 255 `pub fn`s per contract (selectors are one byte; `0xFF`
   is the last valid).
 
-To see the selector for a function, count its position among `pub fn`
-declarations starting at 1.
+A function's selector equals its position among `pub fn`
+declarations, counting from 1.
 
 ## Parameters
 
@@ -69,7 +68,7 @@ init invocation (deploy tx's init_calldata):
   ...
 ```
 
-The difference: a pub fn call carries a 1-byte selector; the init
+The difference: a `pub fn` call carries a 1-byte selector; the init
 payload does not.
 
 Each param is loaded into a local memory slot during the function
@@ -88,7 +87,7 @@ MSTORE
 ```
 
 Locals start at memory offset `0x80` (`LOCAL_MEM_BASE`) and grow
-upward. Each local — param or `let` — takes 32 bytes.
+upward. Each local — parameter or `let` — takes 32 bytes.
 
 ## Return types
 
@@ -116,17 +115,17 @@ pub fn example(a: uint) -> uint {
 }
 ```
 
-Locals persist for the lifetime of the call frame. There is no scope
-narrower than the function — a `let` inside an `if` body is visible
-after the `if` (and conversely, redeclaring `let x` in the same
-function body simply allocates a fresh slot; the prior is shadowed in
-the symbol table but its memory is leaked).
+Locals persist for the lifetime of the call frame. No scope is
+narrower than the function: a `let` inside an `if` body remains
+visible after the `if`, and redeclaring `let x` in the same function
+body allocates a fresh slot. The prior binding is shadowed in the
+symbol table, and its memory is leaked.
 
 ## Calling convention summary
 
 | Aspect | Behavior |
 |---|---|
-| Param passing | Calldata, 32 bytes per param. Pub fns start at offset 1; init starts at offset 0 (no selector). |
+| Param passing | Calldata, 32 bytes per parameter. `pub fn`s start at offset 1; init starts at offset 0 (no selector). |
 | Return passing | Memory at `RETURN_AT` (0x40), `RETURN` opcode |
 | Caller identity | `caller()` builtin returns immediate caller |
 | Origin identity | `origin()` returns tx originator |

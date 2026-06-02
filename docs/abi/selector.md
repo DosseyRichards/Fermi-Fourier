@@ -22,9 +22,9 @@ for fn in contract.functions:
 
 ## Reading off a contract's selector table
 
-There's no metadata in the bytecode that tells you which selector
-maps to which name — you derive it from the source. Walk the source
-top-to-bottom, count `pub fn` declarations starting at 1:
+The bytecode contains no metadata mapping selectors to names; the
+mapping is derived from source. Walk the source top-to-bottom and
+count `pub fn` declarations starting at 1:
 
 ```fourier
 contract Token {
@@ -53,10 +53,9 @@ existing ones shifts every later selector.
 `STOP`. This is what makes init run atomically during deploy
 (`vm/deploy.py`).
 
-A user sending a tx with `calldata = "00"` (a single zero byte)
-**won't** hit the short-circuit — that's 1 byte of calldata, so the
-dispatcher reads `0x00` as the selector, finds no matching `pub fn`,
-and reverts.
+A tx with `calldata = "00"` (a single zero byte) does **not** hit
+the short-circuit: that is 1 byte of calldata, so the dispatcher
+reads `0x00` as the selector, finds no matching `pub fn`, and reverts.
 
 ## Dispatcher bytecode
 
@@ -85,43 +84,44 @@ unconditional `REVERT`.
 
 ## Cross-contract calls
 
-When building calldata in Fourier to call another contract:
+To build calldata in Fourier that calls another contract:
 
 ```fourier
 let cd: bytes = pack_sel(0x03, target_addr, amount);
 ```
 
-`pack_sel`'s first argument is the selector word. Internally it shifts
-the selector to the top byte (`<< 248`) and writes it at `cd + 32`, so
-the resulting `bytes` value reads `[0x03][arg1][arg2]` from offset 0.
+The first argument to `pack_sel` is the selector word. Internally it
+shifts the selector to the top byte (`<< 248`) and writes it at
+`cd + 32`, so the resulting `bytes` value reads `[0x03][arg1][arg2]`
+from offset 0.
 
-See [Cross-contract calls](../language/cross-contract.md) for the full
-context.
+See [Cross-contract calls](../language/cross-contract.md) for the
+full context.
 
 ## Selector collisions
 
-There are no name-based selector collisions (selectors are positional,
-not name-derived). But if two different versions of a contract are
-both deployed and called by the same off-chain client, the selectors
-will only line up if the public-function order is identical between
-versions.
+There are no name-based selector collisions (selectors are
+positional, not name-derived). When two different versions of a
+contract are both deployed and called by the same off-chain client,
+selectors line up only if the public-function order is identical
+between versions.
 
 Recommended practice when evolving a contract: **always append** new
-`pub fn`s, never reorder. This keeps existing selectors stable.
+`pub fn`s; never reorder. This keeps existing selectors stable.
 
 ## Why one byte?
 
 EVM uses 4 bytes (the truncated `keccak256("name(types)")`) so that
 selectors are name-derived and collision-resistant. Fourier uses one
-byte because:
+byte for three reasons:
 
-- The total opcode space (`pub fn` count) is bounded by what a single
-  contract reasonably exposes (small).
+- The selector space (`pub fn` count) is bounded by what a single
+  contract reasonably exposes.
 - Removing the hash-derivation step makes calldata trivial to
   reason about and hand-construct.
-- The dispatcher is a flat O(n) comparison chain (small n) instead of
-  a switch table — simpler bytecode, easier to audit.
+- The dispatcher is a flat O(n) comparison chain (with small n)
+  rather than a switch table — simpler bytecode, easier to audit.
 
-The tradeoff: ABI stability is positional, not nominal. If you care
-about long-term ABI stability, freeze the order of your `pub fn`
-declarations and document it.
+The tradeoff: ABI stability is positional, not nominal. Contracts
+that need long-term ABI stability must freeze the declaration order
+of their `pub fn`s and document it.

@@ -1,17 +1,18 @@
 # ABI and calldata
 
-Fourier's ABI is intentionally minimal. There are three rules:
+The Fourier ABI is defined by three rules:
 
 1. **The first byte of calldata is the selector.** It identifies the
    target `pub fn`.
 2. **Each subsequent argument is a single 32-byte word, big-endian.**
-   No variable-length args in calldata.
+   Calldata carries no variable-length arguments.
 3. **Return values are 32 bytes per scalar, big-endian.** A `bytes`
    return is the only variable-length result type.
 
 There is no Solidity-style 4-byte function selector, no
-`keccak256("name(types)")` derivation, no head/tail tuple encoding. If
-you've used the EVM ABI, this will feel deliberately spartan.
+`keccak256("name(types)")` derivation, and no head/tail tuple
+encoding. The design omits these in exchange for a calldata format
+that can be hand-constructed in a single line.
 
 ## Calldata layout
 
@@ -27,7 +28,7 @@ For a function with `N` args, calldata is exactly `1 + N * 32` bytes.
 
 ## Encoding a call by hand
 
-Suppose your contract has:
+Given a contract that declares:
 
 ```fourier
 pub fn transfer(to: address, amount: uint) -> bool { ... }
@@ -36,7 +37,7 @@ pub fn transfer(to: address, amount: uint) -> bool { ... }
 `transfer` is the third `pub fn` declared, so its selector is `0x03`
 (see [Selector layout](selector.md)).
 
-To call `transfer(0x1234..1234, 1000)` you build:
+A call to `transfer(0x1234..1234, 1000)` is constructed as:
 
 ```text
 0x03                                                                      // selector
@@ -73,11 +74,11 @@ This goes into the `data.calldata` field of a chain-level
 ## When to encode by hand
 
 - Building a wallet UI that talks to a contract.
-- Off-chain indexer that wants to recognize specific calls.
-- Cross-contract calls **from within Fourier** using `pack_sel(...)`.
+- Off-chain indexers that recognize specific calls.
+- Cross-contract calls **from within Fourier** via `pack_sel(...)`.
 - Manual tx construction in tests.
 
-The Python SDK (see
-[https://docs.fermi.world/sdk/](https://docs.fermi.world/sdk/))
-provides helpers; this section is the source of truth those helpers
-implement.
+The Python SDK at
+[https://docs.fermi.world/sdk/](https://docs.fermi.world/sdk/)
+provides helpers. This section is the normative specification those
+helpers implement.
