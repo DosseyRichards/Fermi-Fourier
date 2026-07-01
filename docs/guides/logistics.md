@@ -17,16 +17,15 @@ enforced by code, and the history is permanent. But custody records
 outlive the shipment — a drug's chain of custody may be scrutinized
 years after delivery, evidence may be challenged decades later at appeal
 — and a record is only as permanent as the signatures underneath it.
-Each "I received this, intact" is a signature, and a quantum computer
-will eventually be able to forge the signatures securing today's
-systems, deriving private keys from the public ones already visible
-on-chain. That would let an adversary **retroactively rewrite history**:
-insert a handler who was never there, or erase one who was. To keep that
-from ever happening, each handoff here is signed with a post-quantum
-scheme (**ML-DSA-87, FIPS 204** today, with the chain able to swap in
-newer post-quantum schemes without a hard fork) — the current holder,
-and only the current holder, can pass custody on, and that authorization
-stays unforgeable into the quantum era.
+Each "I received this, intact" is a signature, and the signatures
+securing today's systems rest on math a large quantum computer can
+break, with the public keys needed to forge them already visible on-chain
+now. That would let an adversary **retroactively rewrite history** —
+insert a handler who was never there, or erase one who was — long after
+the fact and with no way to undo it. So each handoff here is signed with
+a [post-quantum scheme](index.md#why-fourier-contracts-are-quantum-proof-by-default):
+the current holder, and only the current holder, can pass custody on,
+and that authorization stays unforgeable into the quantum era.
 
 ## The contract
 

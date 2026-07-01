@@ -17,19 +17,17 @@ every ballot is a signed transaction, the counting is done by code
 everyone can inspect, and the result is permanent.
 
 But that record is only as trustworthy as the signatures authenticating
-the ballots, and today's signatures have an expiry date. A vote *is* a
-signature; the day those signatures can be forged, someone can mint
-ballots that look completely legitimate — and forge them *retroactively*
-against an election held years earlier. A quantum computer will be able
-to do exactly that, deriving private keys from the public keys already
-sitting on any public ledger. For votes whose outcomes must stand for a
-long time — constitutional changes, long-term mandates, endowment
-decisions — that's fatal, which is why every ballot here is signed with
-a post-quantum scheme (**ML-DSA-87, NIST FIPS 204** today — the chain is
-crypto-agile and can adopt newer post-quantum schemes without a hard
-fork) that a quantum computer can't forge. The "was this a real,
-authorized voter?" check, and the recorded tally, stay trustworthy into
-the quantum era.
+the ballots — and today's signatures (RSA, ECDSA) rest on math a large
+quantum computer can break. A vote *is* a signature. Once those
+signatures fall, an attacker can mint ballots that look completely
+legitimate and forge them *retroactively* against an election held years
+ago — and the public keys needed to do it are already on the ledger,
+waiting to be harvested. For outcomes that must stand for decades —
+constitutional changes, long-term mandates, endowment decisions — that's
+not a distant worry but a permanent liability. So every ballot here is
+signed with a [post-quantum scheme](index.md#why-fourier-contracts-are-quantum-proof-by-default)
+a quantum computer can't forge, keeping the "was this a real, authorized
+voter?" check and the recorded tally trustworthy into the quantum era.
 
 ## The contract
 

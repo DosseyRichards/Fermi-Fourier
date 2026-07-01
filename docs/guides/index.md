@@ -28,11 +28,18 @@ permanently, and checks the signature on every action automatically.
 
 The interesting applications are workflows where you need proof of
 *who did what, in what order, and that nobody rewrote history.* Every
-one of those proofs is a digital signature. If the signatures can be
-forged, the whole record becomes worthless in hindsight — and a
-sufficiently powerful quantum computer **will** be able to forge the
-signatures securing today's systems (RSA, ECDSA) by deriving private
-keys from the public keys already visible on any public ledger.
+one of those proofs is a digital signature — and today's signatures
+(RSA, ECDSA) rest on math a large quantum computer can unravel. This
+isn't fringe speculation: it's why NIST has standardized post-quantum
+replacements and why governments and industry are already migrating.
+Two things make it serious rather than distant. The exposure is
+**present-tense** — the public keys an attacker needs are already
+visible on every public ledger, ready to be harvested now and forged
+against once the hardware matures. And the damage is **retroactive and
+permanent** — a record secured with breakable signatures can be
+rewritten years after it was written, with no way to re-secure it after
+the fact. For a ledger meant to be the source of truth, that's the whole
+game.
 
 ## Why Fourier contracts are quantum-proof by default
 

@@ -23,14 +23,13 @@ trustworthy if those authorizations can't be forged — and today's
 signatures won't hold forever. If an attacker could forge the owner's
 signature, they could publish a malicious "new version" that looks
 officially blessed: the exact software-supply-chain attack (xz,
-SolarWinds) that keeps security teams awake. A quantum computer will make
-that possible against ordinary signatures by recovering private keys
-from the public keys on any ledger, so registering and updating a file
-here are signed with a post-quantum scheme (**ML-DSA-87, FIPS 204**
-today — WaveLedger is crypto-agile and can adopt newer schemes without a
-hard fork). Only the real owner can publish a new version, and that
-guarantee holds even after quantum computers can break today's
-signatures.
+SolarWinds) that keeps security teams awake. The signatures ordinarily
+guarding against that rest on math a large quantum computer can break,
+and the public keys needed to forge them are already on the ledger to be
+harvested now. So registering and updating a file here are signed with a
+[post-quantum scheme](index.md#why-fourier-contracts-are-quantum-proof-by-default):
+only the real owner can publish a new version, and that holds even after
+today's signatures fall.
 
 !!! note "This protects integrity, not secrecy"
     The file stays wherever you keep it (S3, IPFS, a laptop). Only its
