@@ -111,6 +111,7 @@ nav:
       - Quantum-proof voting: recipes/voting.md
       - Logistics & chain of custody: recipes/logistics.md
       - Tamper-proof file registry: recipes/file-registry.md
+      - Real estate tokenization: recipes/real-estate.md
   - Language:
       - language/index.md
       - Contracts: language/contracts.md

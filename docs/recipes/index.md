@@ -18,6 +18,9 @@ tested Fourier contract** and shows how your application drives it.
 - [**Tamper-proof file registry**](file-registry.md): anchor a file's
   fingerprint and full version history on-chain so anyone can detect if
   a copy has been altered.
+- [**Real estate tokenization**](real-estate.md): issue fractional,
+  compliance-gated shares in a property, with the legal deed anchored
+  on-chain and every transfer restricted to KYC-verified investors.
 
 ## The idea underneath all three
 
