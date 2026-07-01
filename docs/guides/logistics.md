@@ -23,9 +23,10 @@ systems, deriving private keys from the public ones already visible
 on-chain. That would let an adversary **retroactively rewrite history**:
 insert a handler who was never there, or erase one who was. To keep that
 from ever happening, each handoff here is signed with a post-quantum
-scheme (**ML-DSA-87, FIPS 204**) — the current holder, and only the
-current holder, can pass custody on, and that authorization stays
-unforgeable into the quantum era.
+scheme (**ML-DSA-87, FIPS 204** today, with the chain able to swap in
+newer post-quantum schemes without a hard fork) — the current holder,
+and only the current holder, can pass custody on, and that authorization
+stays unforgeable into the quantum era.
 
 ## The contract
 

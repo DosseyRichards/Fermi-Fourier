@@ -25,9 +25,11 @@ to do exactly that, deriving private keys from the public keys already
 sitting on any public ledger. For votes whose outcomes must stand for a
 long time — constitutional changes, long-term mandates, endowment
 decisions — that's fatal, which is why every ballot here is signed with
-a post-quantum scheme (**ML-DSA-87, NIST FIPS 204**) that a quantum
-computer can't forge. The "was this a real, authorized voter?" check,
-and the recorded tally, stay trustworthy into the quantum era.
+a post-quantum scheme (**ML-DSA-87, NIST FIPS 204** today — the chain is
+crypto-agile and can adopt newer post-quantum schemes without a hard
+fork) that a quantum computer can't forge. The "was this a real,
+authorized voter?" check, and the recorded tally, stay trustworthy into
+the quantum era.
 
 ## The contract
 
