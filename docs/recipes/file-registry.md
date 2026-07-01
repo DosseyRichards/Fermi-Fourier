@@ -7,26 +7,26 @@ contract, a regulatory filing, a scientific dataset, a firmware image, a
 legal exhibit, the weights of an AI model. Months or years later,
 someone hands you a copy and says "this is the original."
 
-**How do you know it wasn't changed?** And how does a third party — an
-auditor, a court, a customer — verify it *without* trusting you or the
-storage vendor?
+**How do you know it wasn't changed?** And how does a third party, be it
+an auditor, a court, or a customer, verify it *without* trusting you or
+the storage vendor?
 
 A blockchain solves this cheaply. You don't put the file on-chain (it's
-public, and probably large). You anchor its **fingerprint** — a SHA3
-hash — plus its ownership and full version history. Anyone holding a
-copy can hash it themselves and compare; one changed byte produces a
+public, and probably large). You anchor its **fingerprint**, a SHA3
+hash, plus its ownership and full version history. Anyone holding a copy
+can hash it themselves and compare; one changed byte produces a
 completely different fingerprint, so tampering is instantly detectable.
 
 The fingerprint proves a file is *unchanged*, but the record of **who
 registered it, who may update it, and the history of versions** is only
-trustworthy if those authorizations can't be forged — and today's
-signatures won't hold forever. If an attacker could forge the owner's
-signature, they could publish a malicious "new version" that looks
-officially blessed: the exact software-supply-chain attack (xz,
-SolarWinds) that keeps security teams awake. The signatures ordinarily
-guarding against that rest on math a large quantum computer can break,
-and the public keys needed to forge them are already on the ledger to be
-harvested now. So registering and updating a file here are signed with a
+trustworthy when those authorizations can't be forged, and today's
+signatures won't hold forever. An attacker who could forge the owner's
+signature could publish a malicious "new version" that looks officially
+blessed: the exact software-supply-chain attack (xz, SolarWinds) that
+keeps security teams awake. The signatures ordinarily guarding against
+that rest on math a large quantum computer can break, and the public
+keys needed to forge them are already on the ledger to be harvested now.
+So registering and updating a file here are signed with a
 [post-quantum scheme](index.md#why-fourier-contracts-are-quantum-proof-by-default):
 only the real owner can publish a new version, and that holds even after
 today's signatures fall.
@@ -34,7 +34,7 @@ today's signatures fall.
 !!! note "This protects integrity, not secrecy"
     The file stays wherever you keep it (S3, IPFS, a laptop). Only its
     hash is on-chain, so the registry reveals nothing about the
-    contents — it only lets anyone *check* a copy against the anchored
+    contents. It only lets anyone *check* a copy against the anchored
     fingerprint.
 
 ## The contract
@@ -43,7 +43,7 @@ Source: `fourier/examples/file_registry.fou` (compiles on the WaveLedger
 VM).
 
 ```fourier
-// FileRegistry — a tamper-proof file system anchor.
+// FileRegistry: a tamper-proof file system anchor.
 // The file itself stays off-chain; only its SHA3 fingerprint is anchored
 // here. Anyone can check whether a file they hold still matches the
 // on-chain fingerprint, and the full version history is immutable.
@@ -135,7 +135,7 @@ your application. It fits in a single `uint` (32 bytes). Because a hash
 is a one-way fingerprint:
 
 - The registry never sees, stores, or leaks the file's contents.
-- Any change to the file — even one bit — yields a different hash, so a
+- Any change to the file, even one bit, yields a different hash, so a
   mismatch against `current_hash` is proof of tampering.
 
 ### Immutable version history
@@ -143,10 +143,10 @@ is a one-way fingerprint:
 `register_file` claims an id (guarded by `registered[id] == 0` so ids
 can't be hijacked) and records version 1. Each `update_file` bumps the
 version, overwrites `current_hash`, **and appends** the new fingerprint
-to `version_hash[id][v]` — old versions are never deleted. The result is
-a permanent, ordered history: `version_hash[id][1]`,
-`version_hash[id][2]`, … each provable against the file that produced
-it.
+to `version_hash[id][v]`. Old versions are never deleted. The result is
+a permanent, ordered history (`version_hash[id][1]`,
+`version_hash[id][2]`, and so on), each entry provable against the file
+that produced it.
 
 Both mutating functions are gated by `caller()` (`registered[id] == 0`
 for the first claim, `owner[id] == caller()` thereafter), so only the
@@ -154,13 +154,13 @@ post-quantum-authenticated owner controls a file's lineage.
 
 ### Anyone can verify
 
-`verify(id, hash)` returns `1` if a fingerprint matches the current
-version — a one-call integrity check. A verifier's flow:
+`verify(id, hash)` returns `1` when a fingerprint matches the current
+version, a one-call integrity check. A verifier's flow:
 
 1. Receive a file claimed to be "document 42, latest."
 2. Hash it locally with SHA3-256.
-3. Call `verify(42, that_hash)`. `1` → authentic and current. `0` →
-   altered, or not the latest version.
+3. Call `verify(42, that_hash)`. `1` means authentic and current; `0`
+   means altered, or not the latest version.
 
 To check against a *specific* historical version instead, read
 `version_hash[id][v]` directly.
@@ -173,19 +173,19 @@ To check against a *specific* historical version instead, read
    `update_file(id, new_hash)`. The version bumps automatically and the
    old fingerprint stays in history.
 3. **Distribute:** ship the file however you like. Recipients verify
-   against the chain — they never need your servers.
-4. **Hand off:** `transfer_ownership(id, new_owner)` moves update rights
-   (e.g. handing a document to its next custodian).
+   against the chain and never need your servers.
+4. **Hand off:** `transfer_ownership(id, new_owner)` moves update rights,
+   for example handing a document to its next custodian.
 
 ## Extending it
 
-- **Multi-signer approval for updates** — require an M-of-N sign-off
+- **Multi-signer approval for updates.** Require an M-of-N sign-off
   (see the [threshold](../examples/threshold.md) and
   [multisig](../stdlib/multisig.md) patterns) before a new version takes
   effect, so no single owner key can push a poisoned release.
-- **Revocation / freeze** — add a `frozen[id]` flag that permanently
+- **Revocation / freeze.** Add a `frozen[id]` flag that permanently
   blocks further updates once a file is finalized.
-- **Directory index** — layer a `map[address, array[uint]]` of "file ids
+- **Directory index.** Layer a `map[address, array[uint]]` of "file ids
   owned by X" for enumeration.
-- **Namespaced ids** — derive `id` as `sha3(owner || path)` so
+- **Namespaced ids.** Derive `id` as `sha3(owner || path)` so
   human-meaningful paths map to registry ids without collisions.

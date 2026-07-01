@@ -8,22 +8,22 @@ lab to courtroom; a lab sample; a piece of art; a high-value part.
 
 At the end, someone asks: **who held this, in what order, and was it
 ever out of trusted hands?** Today that answer lives in a spreadsheet or
-a vendor's database — editable, loseable, and only as honest as whoever
-controls it. Disputes become one party's word against another's.
+a vendor's database. It is editable, loseable, and only as honest as
+whoever controls it. Disputes become one party's word against another's.
 
 A blockchain turns the custody trail into a shared record no single
 party can alter: each handoff is a signed transaction, the sequence is
 enforced by code, and the history is permanent. But custody records
-outlive the shipment — a drug's chain of custody may be scrutinized
-years after delivery, evidence may be challenged decades later at appeal
-— and a record is only as permanent as the signatures underneath it.
-Each "I received this, intact" is a signature, and the signatures
-securing today's systems rest on math a large quantum computer can
-break, with the public keys needed to forge them already visible on-chain
-now. That would let an adversary **retroactively rewrite history** —
-insert a handler who was never there, or erase one who was — long after
-the fact and with no way to undo it. So each handoff here is signed with
-a [post-quantum scheme](index.md#why-fourier-contracts-are-quantum-proof-by-default):
+outlive the shipment. A drug's chain of custody may be scrutinized years
+after delivery, and evidence may be challenged decades later at appeal.
+A record is only as permanent as the signatures underneath it. Each "I
+received this, intact" is a signature, and the signatures securing
+today's systems rest on math a large quantum computer can break, with
+the public keys needed to forge them already visible on-chain now. That
+would let an adversary **retroactively rewrite history**, inserting a
+handler who was never there or erasing one who was, long after the fact
+and with no way to undo it. So each handoff here is signed with a
+[post-quantum scheme](index.md#why-fourier-contracts-are-quantum-proof-by-default):
 the current holder, and only the current holder, can pass custody on,
 and that authorization stays unforgeable into the quantum era.
 
@@ -33,7 +33,7 @@ Source: `fourier/examples/custody_chain.fou` (compiles on the WaveLedger
 VM).
 
 ```fourier
-// CustodyChain — a quantum-proof chain-of-custody / logistics tracker.
+// CustodyChain: a quantum-proof chain-of-custody / logistics tracker.
 // Each handoff is a transaction signed by the current holder with
 // ML-DSA-87, so the trail of who held the item, and when, cannot be
 // forged or rewritten.
@@ -128,45 +128,45 @@ require(holder[id] == caller());
 ```
 
 Only the account that *currently* holds the item can pass it on, and
-`caller()` is post-quantum-authenticated. So the chain of custody is a
-strict baton pass — you can't hand off something you don't hold, and you
+`caller()` is post-quantum-authenticated. The chain of custody is a
+strict baton pass. You can't hand off something you don't hold, and you
 can't insert yourself into someone else's trail. Every step appends an
 immutable `(holder, timestamp)` pair to `step_holder` / `step_time` and
 emits `CustodyTransferred`, so the full history is reconstructable from
 events alone.
 
-`mark_delivered` freezes the shipment: once `delivered[id] == 1`, further
-transfers are rejected.
+`mark_delivered` freezes the shipment. Once `delivered[id] == 1`,
+further transfers are rejected.
 
 ### Reconstructing the trail
 
 To audit shipment `id`, read `get_step_count(id)`, then
 `get_step_holder(id, i)` and the matching timestamp for each step from
-`0` to `count - 1`. That sequence — origin first, current holder last —
+`0` to `count - 1`. That sequence, origin first and current holder last,
 is the complete, tamper-proof custody record.
 
 ## Driving it from your application
 
 1. The origin (factory, evidence tech) calls `create_shipment()` and
-   records the returned `id` — perhaps printed as a QR code on the box.
+   records the returned `id`, perhaps printed as a QR code on the box.
 2. At each handoff, the **releasing** party calls
    `transfer_custody(id, next_holder_address)` from their own wallet.
    (A "confirm receipt" variant is in *Extending it* below.)
 3. The final recipient calls `mark_delivered(id)`.
-4. Auditors, regulators, or a counterparty read the trail — no access to
-   anyone's database required.
+4. Auditors, regulators, or a counterparty read the trail, with no
+   access to anyone's database required.
 
 ## Extending it
 
-- **Two-party handoff (accept step)** — instead of the sender assigning
+- **Two-party handoff (accept step).** Instead of the sender assigning
   the next holder, have the sender *propose* and the receiver *accept*
   in a second transaction, so both signatures are on record for each
   step.
-- **Condition attestations** — add a `note_hash` argument to
+- **Condition attestations.** Add a `note_hash` argument to
   `transfer_custody` holding the `sha3` of an off-chain inspection
   report ("temperature within range, seal intact"), anchoring the
   condition at each step without putting the report on-chain.
-- **Authorized-handlers list** — gate `transfer_custody` on an
+- **Authorized-handlers list.** Gate `transfer_custody` on an
   `is_handler[to] == 1` roll so custody can only pass to vetted parties.
-- **Geofencing / SLA timers** — record expected vs. actual timestamps
+- **Geofencing / SLA timers.** Record expected versus actual timestamps
   and emit an alert event when a leg exceeds its window.

@@ -2,29 +2,29 @@
 
 ## The problem
 
-Any group that votes — a co-op, a board, a union, a token community, a
-municipal pilot — has to answer three awkward questions:
+Any group that votes, whether a co-op, a board, a union, a token
+community, or a municipal pilot, has to answer three awkward questions:
 
 1. **Was every ballot cast by someone allowed to vote?**
 2. **Did anyone vote twice?**
-3. **Can we trust the final tally — that nobody added, dropped, or
+3. **Can we trust the final tally, that nobody added, dropped, or
    changed votes after the fact?**
 
 Traditional systems answer these by asking you to *trust the operator*:
 the server counting the votes, the admin with database access. A
-blockchain replaces that trust with a public, tamper-proof record —
-every ballot is a signed transaction, the counting is done by code
-everyone can inspect, and the result is permanent.
+blockchain replaces that trust with a public, tamper-proof record. Every
+ballot is a signed transaction, the counting is done by code everyone
+can inspect, and the result is permanent.
 
-But that record is only as trustworthy as the signatures authenticating
-the ballots — and today's signatures (RSA, ECDSA) rest on math a large
+That record is only as trustworthy as the signatures authenticating the
+ballots, and today's signatures (RSA, ECDSA) rest on math a large
 quantum computer can break. A vote *is* a signature. Once those
 signatures fall, an attacker can mint ballots that look completely
 legitimate and forge them *retroactively* against an election held years
-ago — and the public keys needed to do it are already on the ledger,
-waiting to be harvested. For outcomes that must stand for decades —
-constitutional changes, long-term mandates, endowment decisions — that's
-not a distant worry but a permanent liability. So every ballot here is
+ago. The public keys needed to do it are already on the ledger, waiting
+to be harvested. For outcomes that must stand for decades, such as
+constitutional changes, long-term mandates, or endowment decisions, that
+is not a distant worry but a permanent liability. So every ballot here is
 signed with a [post-quantum scheme](index.md#why-fourier-contracts-are-quantum-proof-by-default)
 a quantum computer can't forge, keeping the "was this a real, authorized
 voter?" check and the recorded tally trustworthy into the quantum era.
@@ -35,7 +35,7 @@ Source: `fourier/examples/quantum_vote.fou` (compiles and runs on the
 WaveLedger VM).
 
 ```fourier
-// QuantumVote — a tamper-proof voting workflow on WaveLedger.
+// QuantumVote: a tamper-proof voting workflow on WaveLedger.
 // Every vote is a transaction signed with ML-DSA-87 (FIPS 204), so
 // caller() is a post-quantum-authenticated identity and the tally is
 // permanent and public.
@@ -121,7 +121,7 @@ contract QuantumVote {
 
 ### The three questions, answered in code
 
-**Who may vote** — the admin adds addresses to the roll. Because
+**Who may vote.** The admin adds addresses to the roll. Because
 `caller()` is post-quantum-authenticated, only the real admin passes the
 gate:
 
@@ -133,7 +133,7 @@ pub fn register_voter(voter: address) {
 }
 ```
 
-**One vote each** — `cast_vote` checks the roll, the deadline, and the
+**One vote each.** `cast_vote` checks the roll, the deadline, and the
 per-proposal `has_voted` flag before counting. The double-vote guard is
 the `has_voted[id][caller()] == 0` line:
 
@@ -152,7 +152,7 @@ pub fn cast_vote(id: uint, support: uint) {
 }
 ```
 
-**A trustworthy tally** — `yes_votes` / `no_votes` are updated only
+**A trustworthy tally.** `yes_votes` and `no_votes` are updated only
 through `cast_vote`, and every change is a permanent event on a
 post-quantum chain. There is no "edit the database" path.
 
@@ -173,15 +173,15 @@ END-TO-END VOTING: PASS
 ## Driving it from your application
 
 Your app talks to the contract the same way it would any Fourier
-contract — build calldata (a 1-byte selector followed by 32-byte
-arguments) and submit it as a transaction. Conceptually:
+contract. Build calldata (a 1-byte selector followed by 32-byte
+arguments) and submit it as a transaction. The flow:
 
 1. **Deploy** the compiled contract. The deploying account becomes
    `admin`.
 2. **Register** each eligible voter's address (`register_voter`).
 3. **Open** a proposal with a voting window (`create_proposal(seconds)`).
-4. Voters **cast** ballots (`cast_vote(id, 1)` for yes, `0` for no) —
-   each signs their own transaction from their own wallet.
+4. Voters **cast** ballots (`cast_vote(id, 1)` for yes, `0` for no).
+   Each voter signs their own transaction from their own wallet.
 5. Anyone **reads** the result (`get_yes` / `get_no`), or reconstructs
    it independently from the `VoteCast` events.
 
@@ -191,13 +191,13 @@ bytecode.
 
 ## Extending it
 
-- **Weighted voting** — replace the `+ 1` increments with a
+- **Weighted voting.** Replace the `+ 1` increments with a
   `voter_weight[caller()]` lookup.
-- **Secret ballots** — have voters submit a *commitment* (`sha3` of
-  their choice + a nonce) during the window, then reveal after it
-  closes. On-chain data is public, so a naive vote is visible; a
-  commit-reveal scheme hides choices until the tally.
-- **Quorum / thresholds** — add a `get_result(id)` that requires a
+- **Secret ballots.** Have voters submit a *commitment* (`sha3` of their
+  choice plus a nonce) during the window, then reveal after it closes.
+  On-chain data is public, so a naive vote is visible; a commit-reveal
+  scheme hides choices until the tally.
+- **Quorum / thresholds.** Add a `get_result(id)` that requires a
   minimum turnout before declaring an outcome.
-- **Delegation** — add a `delegate(to)` map so a voter can assign their
+- **Delegation.** Add a `delegate(to)` map so a voter can assign their
   ballot to another registered address.
