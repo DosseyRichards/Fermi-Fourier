@@ -51,10 +51,16 @@ You do **not** have to write any cryptography to get this property:
   is a **post-quantum-authenticated identity**. When you write
   `require(caller() == admin)` or `require(is_voter[caller()] == 1)`,
   that check is already quantum-safe.
-- **The record itself lives on a post-quantum chain.** Blocks, history,
-  and state are secured by post-quantum cryptography, so the audit
-  trail your contract builds can't be rewritten by breaking the
-  underlying signatures.
+- **The whole stack is post-quantum — not only the signatures.**
+  WaveLedger uses post-quantum primitives at every layer: **ML-DSA-87**
+  (NIST FIPS 204) for signatures, **ML-KEM-1024** (FIPS 203) for key
+  encapsulation — an account's very address derives from its ML-KEM key
+  — and **SHA3-512** for block hashes, the Merkle tree, transaction IDs,
+  and address derivation. Nothing in the chain relies on RSA or elliptic
+  curves. These guides foreground *signatures* only because
+  authenticity — *who* acted — is what a vote, a custody trail, or a
+  file history hinges on; but that authenticity rests on a foundation
+  that's post-quantum all the way down.
 - **The scheme is not hard-wired — WaveLedger is crypto-agile.**
   ML-DSA-87 is the *current* default, not a permanent commitment. The
   chain keeps a governed on-chain registry of signature schemes (the
