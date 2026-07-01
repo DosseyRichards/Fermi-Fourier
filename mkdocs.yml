@@ -106,6 +106,11 @@ plugins:
 nav:
   - Home: index.md
   - Quick reference: quick-reference.md
+  - Guides:
+      - guides/index.md
+      - Quantum-proof voting: guides/voting.md
+      - Logistics & chain of custody: guides/logistics.md
+      - Tamper-proof file registry: guides/file-registry.md
   - Language:
       - language/index.md
       - Contracts: language/contracts.md
