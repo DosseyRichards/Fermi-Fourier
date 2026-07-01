@@ -14,23 +14,21 @@ storage vendor?
 A blockchain solves this cheaply. You don't put the file on-chain (it's
 public, and probably large). You anchor its **fingerprint** — a SHA3
 hash — plus its ownership and full version history. Anyone holding a
-copy can hash it themselves and compare. One changed byte produces a
+copy can hash it themselves and compare; one changed byte produces a
 completely different fingerprint, so tampering is instantly detectable.
 
-## Why it has to be quantum-proof
-
-The fingerprint proves a file is *unchanged*. But the record of **who
-registered it, who's allowed to update it, and the history of versions**
-is only trustworthy if those authorizations can't be forged. If an
-attacker could forge the owner's signature, they could publish a
-malicious "new version" that looks officially blessed — the exact
-software-supply-chain attack (xz, SolarWinds) that keeps security teams
-awake.
-
-On WaveLedger, registering and updating a file are transactions signed
-with **ML-DSA-87 (FIPS 204)**. Only the real owner can publish a new
-version, and that guarantee holds even after quantum computers can break
-today's signatures.
+The fingerprint proves a file is *unchanged*, but the record of **who
+registered it, who may update it, and the history of versions** is only
+trustworthy if those authorizations can't be forged — and today's
+signatures won't hold forever. If an attacker could forge the owner's
+signature, they could publish a malicious "new version" that looks
+officially blessed: the exact software-supply-chain attack (xz,
+SolarWinds) that keeps security teams awake. A quantum computer will make
+that possible against ordinary signatures by recovering private keys
+from the public keys on any ledger, so registering and updating a file
+here are signed with a post-quantum scheme (**ML-DSA-87, FIPS 204**).
+Only the real owner can publish a new version, and that guarantee holds
+even after quantum computers can break today's signatures.
 
 !!! note "This protects integrity, not secrecy"
     The file stays wherever you keep it (S3, IPFS, a laptop). Only its

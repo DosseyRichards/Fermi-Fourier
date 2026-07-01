@@ -12,21 +12,20 @@ a vendor's database — editable, loseable, and only as honest as whoever
 controls it. Disputes become one party's word against another's.
 
 A blockchain turns the custody trail into a shared record no single
-party can alter. Each handoff is a signed transaction; the sequence is
-enforced by code; the history is permanent.
-
-## Why it has to be quantum-proof
-
-Custody records outlive the shipment. A drug's chain of custody may be
-scrutinized years after delivery; evidence may be challenged decades
-later at appeal. If the signatures proving "I received this, intact"
-can eventually be forged, an adversary could **retroactively rewrite
-history** — insert a handler who was never there, or erase one who was.
-
-On WaveLedger each handoff is a transaction signed with **ML-DSA-87
-(FIPS 204)**. The current holder — and only the current holder — can
-pass custody on, and that authorization stays unforgeable into the
-quantum era.
+party can alter: each handoff is a signed transaction, the sequence is
+enforced by code, and the history is permanent. But custody records
+outlive the shipment — a drug's chain of custody may be scrutinized
+years after delivery, evidence may be challenged decades later at appeal
+— and a record is only as permanent as the signatures underneath it.
+Each "I received this, intact" is a signature, and a quantum computer
+will eventually be able to forge the signatures securing today's
+systems, deriving private keys from the public ones already visible
+on-chain. That would let an adversary **retroactively rewrite history**:
+insert a handler who was never there, or erase one who was. To keep that
+from ever happening, each handoff here is signed with a post-quantum
+scheme (**ML-DSA-87, FIPS 204**) — the current holder, and only the
+current holder, can pass custody on, and that authorization stays
+unforgeable into the quantum era.
 
 ## The contract
 

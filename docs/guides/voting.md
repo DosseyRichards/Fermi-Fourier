@@ -16,19 +16,18 @@ blockchain replaces that trust with a public, tamper-proof record —
 every ballot is a signed transaction, the counting is done by code
 everyone can inspect, and the result is permanent.
 
-## Why it has to be quantum-proof
-
-A vote is only as trustworthy as the signatures that authenticate the
-ballots. The day those signatures can be forged, someone can forge
-ballots that look completely legitimate — and, worse, forge them
-*retroactively* against an election held years earlier. For votes whose
-outcomes must stand for a long time (constitutional changes, long-term
-mandates, endowment decisions), that's fatal.
-
-On WaveLedger every ballot in this contract is a transaction signed with
-**ML-DSA-87 (FIPS 204)**, a post-quantum signature. So the "was this a
-real, authorized voter?" check is quantum-safe, and the recorded tally
-can't be rewritten by breaking the underlying cryptography.
+But that record is only as trustworthy as the signatures authenticating
+the ballots, and today's signatures have an expiry date. A vote *is* a
+signature; the day those signatures can be forged, someone can mint
+ballots that look completely legitimate — and forge them *retroactively*
+against an election held years earlier. A quantum computer will be able
+to do exactly that, deriving private keys from the public keys already
+sitting on any public ledger. For votes whose outcomes must stand for a
+long time — constitutional changes, long-term mandates, endowment
+decisions — that's fatal, which is why every ballot here is signed with
+a post-quantum scheme (**ML-DSA-87, NIST FIPS 204**) that a quantum
+computer can't forge. The "was this a real, authorized voter?" check,
+and the recorded tally, stay trustworthy into the quantum era.
 
 ## The contract
 
