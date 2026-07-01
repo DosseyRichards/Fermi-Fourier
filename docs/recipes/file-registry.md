@@ -28,8 +28,8 @@ that rest on math a large quantum computer can break, and the public
 keys needed to forge them are already on the ledger to be harvested now.
 So registering and updating a file here are signed with a
 [post-quantum scheme](index.md#why-fourier-contracts-are-quantum-proof-by-default):
-only the real owner can publish a new version, and that holds even after
-today's signatures fall.
+only the real owner can publish a new version, and that holds even
+against an adversary who already has a quantum computer.
 
 !!! note "This protects integrity, not secrecy"
     The file stays wherever you keep it (S3, IPFS, a laptop). Only its

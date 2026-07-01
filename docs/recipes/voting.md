@@ -24,10 +24,11 @@ legitimate and forge them *retroactively* against an election held years
 ago. The public keys needed to do it are already on the ledger, waiting
 to be harvested. For outcomes that must stand for decades, such as
 constitutional changes, long-term mandates, or endowment decisions, that
-is not a distant worry but a permanent liability. So every ballot here is
-signed with a [post-quantum scheme](index.md#why-fourier-contracts-are-quantum-proof-by-default)
+exposure is not something you can defer. So every ballot here is signed
+with a [post-quantum scheme](index.md#why-fourier-contracts-are-quantum-proof-by-default)
 a quantum computer can't forge, keeping the "was this a real, authorized
-voter?" check and the recorded tally trustworthy into the quantum era.
+voter?" check and the recorded tally trustworthy no matter when that
+machine arrives, or whether it already has.
 
 ## The contract
 

@@ -5,9 +5,10 @@ Problem-first walkthroughs that show how to use Fourier to build
 multi-party process a real application needs: a vote, a shipment, a
 file's history.
 
-Each recipe opens with the plain-language problem and why it has to
-survive the arrival of quantum computers, then gives you a **complete,
-tested Fourier contract** and shows how your application drives it.
+Each recipe opens with the plain-language problem and why post-quantum
+security is a requirement now, not a later upgrade, then gives you a
+**complete, tested Fourier contract** and shows how your application
+drives it.
 
 - [**Quantum-proof voting**](voting.md): run an election or a
   governance vote where every ballot is authenticated, nobody can vote
@@ -32,17 +33,22 @@ permanently, and checks the signature on every action automatically.
 The interesting applications are workflows where you need proof of
 *who did what, in what order, and that nobody rewrote history.* Every
 one of those proofs is a digital signature, and today's signatures
-(RSA, ECDSA) rest on math a large quantum computer can unravel. This
-isn't fringe speculation. It's why NIST has standardized post-quantum
-replacements and why governments and industry are already migrating.
+(RSA, ECDSA) rest on math a quantum computer can unravel. This is not a
+problem for later. NIST finalized its post-quantum standards in 2024,
+governments have set firm deadlines to pull RSA and elliptic curves out
+of critical systems, and that migration is happening now.
 
-Two things make the threat serious rather than distant. The exposure is
-**present-tense**: the public keys an attacker needs are already visible
-on every public ledger, ready to be harvested now and forged against
-once the hardware matures. The damage is **retroactive and permanent**:
-a record secured with breakable signatures can be rewritten years after
-it was written, with no way to re-secure it. For a ledger meant to be
-the source of truth, that is the whole game.
+Two things make the threat present rather than future. First, the attack
+has already begun: an adversary can copy the public keys off any public
+ledger today and hold them until a capable quantum computer is in reach,
+a strategy known as **harvest now, forge later**. Nobody can prove such a
+machine does not already exist in a lab or an intelligence agency, and
+whoever builds one first has every reason not to say so. Second, the
+damage is **retroactive and permanent**: a record secured with breakable
+signatures can be rewritten years after it was written, with no way to
+re-secure it. For a ledger meant to be the source of truth, and for
+assets held for decades, waiting is not neutral. It leaves everything you
+write in the meantime forgeable in hindsight.
 
 ## Why Fourier contracts are quantum-proof by default
 

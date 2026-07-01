@@ -25,11 +25,13 @@ forge them are already visible on-chain now, ready to be harvested. A
 forged signature would let an attacker mint a fraudulent transfer and
 move someone's shares, or forge a sale years after the fact, with the
 fake indistinguishable from the real thing. For an asset meant to stay
-owned across generations, that is not a distant worry but a permanent
-liability. So every share transfer and every compliance action here is a
+owned across generations, that exposure is present the moment the shares
+exist, not a problem to revisit later. So every share transfer and every
+compliance action here is a
 [post-quantum-signed transaction](index.md#why-fourier-contracts-are-quantum-proof-by-default),
 and the legal deed is anchored by its SHA3 fingerprint, keeping ownership
-authoritative into the quantum era.
+authoritative no matter when a quantum computer arrives, or whether one
+already has.
 
 ## The contract
 
