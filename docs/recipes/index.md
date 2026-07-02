@@ -22,6 +22,9 @@ drives it.
 - [**Real estate tokenization**](real-estate.md): issue fractional,
   compliance-gated shares in a property, with the legal deed anchored
   on-chain and every transfer restricted to KYC-verified investors.
+- [**Nuclear command authorization**](command-authority.md): a two-person
+  rule where a quorum of authenticated officers must confirm an order,
+  any one can stand it down, and no authorization can be forged.
 
 ## The idea underneath all three
 

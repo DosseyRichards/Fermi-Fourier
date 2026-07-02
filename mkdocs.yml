@@ -112,6 +112,7 @@ nav:
       - Logistics & chain of custody: recipes/logistics.md
       - Tamper-proof file registry: recipes/file-registry.md
       - Real estate tokenization: recipes/real-estate.md
+      - Nuclear command authorization: recipes/command-authority.md
   - Language:
       - language/index.md
       - Contracts: language/contracts.md
