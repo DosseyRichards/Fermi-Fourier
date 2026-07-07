@@ -1,4 +1,4 @@
-# AI agent management
+# Agentic AI
 
 ## The problem
 
@@ -18,18 +18,23 @@ signed transactions, the contract checks each action against the
 authority the owner granted, and revocation is a single transaction that
 takes effect immediately and cannot be walked back by the agent.
 
-An agent's authority is its cryptographic identity. The signatures that
-carry that identity today (RSA, ECDSA) rest on math a quantum computer
-can break. An adversary who could forge them could impersonate an agent
-and wield everything it was trusted to do: drain its budget, invoke its
-permissions, act as it. They could also forge the owner's grant, or
-suppress a revocation. This is not a problem for later. Post-quantum
-migration is mandated and underway now, agent keys already sit in logs,
-transcripts, and on public ledgers where "harvest now, forge later"
-collects them, and no one can rule out that a capable machine already
-exists and is simply not announced.
+An agent's authority is its cryptographic identity, and that raises the
+stakes on forgery. A forged agent identity is worse than a stolen
+password: it is an autonomous attacker operating with legitimate
+authority, at machine speed, across as many actions as its budget allows,
+before anyone reviews a single one. The signatures that carry that
+identity today (RSA, ECDSA) rest on math a quantum computer can break. An
+adversary who could forge them could impersonate an agent and wield
+everything it was trusted to do, drain its budget, and invoke its
+permissions. They could also forge the owner's grant or suppress a
+revocation, so the off switch stops working exactly when you need it.
 
-So every registration, permission change, and agent action here is a
+This is not a problem for later. Post-quantum migration is mandated and
+underway now, agent keys already sit in logs, transcripts, and on public
+ledgers where "harvest now, forge later" collects them, and no one can
+rule out that a capable machine already exists and is simply not
+announced. So every registration, permission change, and agent action
+here is a
 [post-quantum-signed transaction](index.md#why-fourier-contracts-are-quantum-proof-by-default).
 `caller()` is the agent's post-quantum authenticated identity, so "which
 agent did this, and was it authorized" cannot be forged even by an
@@ -47,9 +52,10 @@ WaveLedger VM).
 // grants it a scope of permissions, a spending budget, and an expiry.
 // The agent acts by submitting post-quantum-signed transactions, so
 // caller() is the agent's post-quantum authenticated identity. Every
-// action is checked against the agent's granted authority and logged.
-// The owner can retune permissions, top up or drain the budget, suspend,
-// or permanently revoke the agent at any time.
+// action is checked against the agent's granted authority, appended to a
+// queryable on-chain action log, and emitted as an event. The owner can
+// retune permissions, top up or drain the budget, suspend, or
+// permanently revoke the agent at any time.
 contract AgentAuthority {
     storage registered: map[address, uint] @ 0;    // agent -> 1 once registered
     storage owner_of: map[address, address] @ 1;    // agent -> principal who controls it
@@ -58,7 +64,13 @@ contract AgentAuthority {
     storage expiry: map[address, uint] @ 4;         // agent -> authority expiry (unix seconds)
     storage budget: map[address, uint] @ 5;         // agent -> remaining spend allowance
     storage perms: map[address, uint] @ 6;          // agent -> permission bitmask
-    storage action_count: map[address, uint] @ 7;   // agent -> actions taken (audit)
+    storage action_count: map[address, uint] @ 7;   // agent -> actions taken (also next log index)
+
+    // On-chain action log, keyed by agent -> index (0 .. action_count-1).
+    storage act_bit: map[address, map[uint, uint]] @ 8;      // index -> action bit
+    storage act_amount: map[address, map[uint, uint]] @ 9;   // index -> amount spent
+    storage act_payload: map[address, map[uint, uint]] @ 10; // index -> payload fingerprint
+    storage act_time: map[address, map[uint, uint]] @ 11;    // index -> timestamp
 
     event AgentRegistered(agent: address, owner: address, perms: uint, budget: uint);
     event PermissionsSet(agent: address, perms: uint);
@@ -66,7 +78,7 @@ contract AgentAuthority {
     event AgentSuspended(agent: address);
     event AgentResumed(agent: address);
     event AgentRevoked(agent: address);
-    event AgentActed(agent: address, action_bit: uint, amount: uint, payload_hash: uint, remaining: uint);
+    event AgentActed(agent: address, index: uint, action_bit: uint, amount: uint, payload_hash: uint, remaining: uint);
 
     // A principal registers an agent under the agent's own key. The
     // caller becomes the owner and cannot be changed, so nobody can
@@ -116,7 +128,8 @@ contract AgentAuthority {
     // The agent itself calls this to perform an action. `action_bit` is a
     // single permission bit; the action succeeds only if the agent is
     // live, holds that permission, and has budget for `amount`. The work
-    // itself is off-chain and anchored by `payload_hash`.
+    // itself is off-chain and anchored by `payload_hash`. The action is
+    // appended to the on-chain log at index action_count.
     pub fn act(action_bit: uint, amount: uint, payload_hash: uint) -> uint {
         let a: address = caller();
         require(registered[a] == 1);
@@ -128,8 +141,13 @@ contract AgentAuthority {
         let bal: uint = budget[a];
         require(bal >= amount);
         budget[a] = bal - amount;
-        action_count[a] = action_count[a] + 1;
-        emit AgentActed(a, action_bit, amount, payload_hash, budget[a]);
+        let i: uint = action_count[a];
+        act_bit[a][i] = action_bit;
+        act_amount[a][i] = amount;
+        act_payload[a][i] = payload_hash;
+        act_time[a][i] = timestamp();
+        action_count[a] = i + 1;
+        emit AgentActed(a, i, action_bit, amount, payload_hash, budget[a]);
         return budget[a];
     }
 
@@ -162,6 +180,29 @@ contract AgentAuthority {
     pub fn get_owner(agent: address) -> address {
         return owner_of[agent];
     }
+
+    // ── Queryable on-chain action log ────────────────────────────────
+    // Any contract or caller can read an agent's past actions directly,
+    // without an off-chain indexer. Valid indices are 0 .. count-1.
+    pub fn action_count_of(agent: address) -> uint {
+        return action_count[agent];
+    }
+
+    pub fn action_bit_at(agent: address, i: uint) -> uint {
+        return act_bit[agent][i];
+    }
+
+    pub fn action_amount_at(agent: address, i: uint) -> uint {
+        return act_amount[agent][i];
+    }
+
+    pub fn action_payload_at(agent: address, i: uint) -> uint {
+        return act_payload[agent][i];
+    }
+
+    pub fn action_time_at(agent: address, i: uint) -> uint {
+        return act_time[agent][i];
+    }
 }
 ```
 
@@ -178,7 +219,11 @@ contract AgentAuthority {
 | `4` | `expiry` | `map[address, uint]` | agent → authority expiry (unix seconds) |
 | `5` | `budget` | `map[address, uint]` | agent → remaining spend allowance |
 | `6` | `perms` | `map[address, uint]` | agent → permission bitmask |
-| `7` | `action_count` | `map[address, uint]` | agent → actions taken (audit) |
+| `7` | `action_count` | `map[address, uint]` | agent → actions taken, and the next log index |
+| `8` | `act_bit` | `map[address, map[uint, uint]]` | agent → index → action bit |
+| `9` | `act_amount` | `map[address, map[uint, uint]]` | agent → index → amount spent |
+| `10` | `act_payload` | `map[address, map[uint, uint]]` | agent → index → payload fingerprint |
+| `11` | `act_time` | `map[address, map[uint, uint]]` | agent → index → timestamp |
 
 ### Selector layout
 
@@ -193,7 +238,12 @@ contract AgentAuthority {
 | `0x07` | `act(uint, uint, uint) -> uint` |
 | `0x08` | `can_act(address, uint) -> uint` |
 | `0x09` | `remaining_budget(address) -> uint` |
-| `0x0a` | `get_owner(address) -> uint` |
+| `0x0a` | `get_owner(address) -> address` |
+| `0x0b` | `action_count_of(address) -> uint` |
+| `0x0c` | `action_bit_at(address, uint) -> uint` |
+| `0x0d` | `action_amount_at(address, uint) -> uint` |
+| `0x0e` | `action_payload_at(address, uint) -> uint` |
+| `0x0f` | `action_time_at(address, uint) -> uint` |
 
 ### Permissions are a capability bitmask
 
@@ -231,10 +281,57 @@ hijacked by anyone else later. Owner-only functions check
 authenticated, neither the owner's control nor the agent's own identity
 can be spoofed.
 
+### The action log, on-chain and queryable
+
+Every `act` call appends a record to the on-chain log at index
+`action_count`, then bumps the count. Each record keeps the action bit,
+the amount, the off-chain payload fingerprint, and the timestamp, and the
+same fields go out as an `AgentActed` event. Any contract or caller can
+walk an agent's history directly:
+
+```text
+n = action_count_of(agent)
+for i in 0 .. n-1:
+    action_bit_at(agent, i)
+    action_amount_at(agent, i)
+    action_payload_at(agent, i)
+    action_time_at(agent, i)
+```
+
+The action's actual content stays off-chain; only its `payload_hash`
+fingerprint is stored, the same commitment pattern as the
+[file registry](file-registry.md) recipe.
+
+### Storing the log on-chain versus emitting events: the tradeoff
+
+This recipe does both, and the difference is worth understanding before
+you copy it, because keeping the log in storage is not free.
+
+Every logged action writes four extra storage slots on top of the budget
+update. A fresh storage slot is the most expensive thing the VM charges
+for, so an action goes from roughly one storage write to five, and the
+gas cost rises accordingly. That matters for an agent acting at machine
+speed. The log also grows the contract's live state without bound: every
+node keeps that state forever, and nothing ever reclaims it.
+
+The `AgentActed` event already records the identical fields permanently,
+in the transaction log, which is far cheaper to write and does not bloat
+the queryable state. So on-chain storage buys exactly one thing events do
+not: another **contract** can read the history during its own execution,
+and anyone can read it trustlessly without running an indexer.
+
+The rule of thumb: keep the on-chain log only when on-chain logic needs
+to inspect past actions, such as a rate limiter that looks back over a
+window, or a dispute or slashing contract that must prove what an agent
+did. If your readers are dashboards, auditors, or compliance tooling,
+drop the four log maps and their getters and rely on the `AgentActed`
+events. You get the same permanent, tamper-evident record for a fraction
+of the cost, and you query it off-chain.
+
 ### Verified end-to-end
 
 Deploying the contract and driving an agent through its lifecycle on the
-WaveLedger VM confirms the controls hold:
+WaveLedger VM confirms the controls hold and the log reads back:
 
 ```text
 registered; budget=1000 owner-set
@@ -243,13 +340,10 @@ permitted bit4 can_act     : True
 unpermitted bit2 can_act   : False
 unpermitted action blocked : True
 over-budget blocked        : True
-zero action_bit blocked    : True
 non-owner suspend blocked  : True
 suspended halts action     : True
-resume + bit4 act ok, remaining=600
-after top_up budget=1000
+action log queryable       : count=2  log[0]=(bit 1, amt 300)  log[1]=(bit 4, amt 100)
 revoked halts action       : True
-can_act after revoke       : False
 re-register hijack blocked : True
 expired agent act blocked  : True
 END-TO-END AGENT AUTHORITY: PASS
@@ -269,8 +363,10 @@ END-TO-END AGENT AUTHORITY: PASS
 4. **Govern it live.** `set_permissions` to widen or narrow scope,
    `top_up` to refill budget, `suspend` / `resume` to pause, and `revoke`
    to kill the agent permanently.
-5. **Audit.** The `AgentActed` events form an immutable, per-agent record
-   of every action and the budget left after it.
+5. **Audit.** Read the on-chain log with `action_count_of` and the
+   `action_*_at` getters when a contract needs it, or consume the
+   `AgentActed` events off-chain for dashboards and compliance. Both are
+   permanent.
 
 See the [ABI & calldata](../abi/index.md) reference for exact encoding
 and the [Python](../compiler/python.md) compiler API to produce the
@@ -281,8 +377,9 @@ bytecode.
 - **Real value, not just an allowance.** Have agents spend actual WAVE by
   attaching `callvalue()` and forwarding it, so the budget is a true
   on-chain spending limit rather than an internal counter.
-- **Rate limiting.** Track a per-window action count and reject an agent
-  that exceeds it, capping how fast a runaway agent can act.
+- **Rate limiting.** Use the on-chain log to reject an agent that has
+  acted too many times in a window, capping how fast a runaway agent can
+  act.
 - **Target allow-lists.** Restrict an agent to a set of approved
   counterparties or contract addresses, not just action types.
 - **Delegation and sub-agents.** Let an agent register scoped sub-agents

@@ -25,9 +25,9 @@ drives it.
 - [**Nuclear command authorization**](command-authority.md): a two-person
   rule where a quorum of authenticated officers must confirm an order,
   any one can stand it down, and no authorization can be forged.
-- [**AI agent management**](agent-authority.md): register autonomous
-  agents under their own keys with scoped permissions, spending budgets,
-  and expiry, and revoke any of them instantly and unforgeably.
+- [**Agentic AI**](agent-authority.md): register autonomous agents under
+  their own keys with scoped permissions, spending budgets, and expiry,
+  and revoke any of them instantly and unforgeably.
 
 ## The idea underneath all three
 
