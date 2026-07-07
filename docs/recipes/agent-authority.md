@@ -29,6 +29,15 @@ everything it was trusted to do, drain its budget, and invoke its
 permissions. They could also forge the owner's grant or suppress a
 revocation, so the off switch stops working exactly when you need it.
 
+The stakes scale with what the agent is trusted to do. A support chatbot
+with a small budget is a contained loss; an agent wired into a defense
+network or a piece of critical infrastructure is not. Any of them whose
+authority rests on RSA or ECDSA is impersonable by anyone holding a
+cryptographically-relevant quantum computer, and the attacker does not
+break the model, they become the agent. That is why the authentication
+has to be post-quantum and the authority tightly scoped and instantly
+revocable.
+
 This is not a problem for later. Post-quantum migration is mandated and
 underway now, agent keys already sit in logs, transcripts, and on public
 ledgers where "harvest now, forge later" collects them, and no one can
