@@ -26,7 +26,7 @@ forged signature would let an attacker mint a fraudulent transfer and
 move someone's shares, or forge a sale years after the fact, with the
 fake indistinguishable from the real thing. For an asset meant to stay
 owned across generations, that exposure is present the moment the shares
-exist, not a problem to revisit later. So every share transfer and every
+exist and lasts as long as the asset does. So every share transfer and every
 compliance action here is a
 [post-quantum-signed transaction](index.md#why-fourier-contracts-are-quantum-proof-by-default),
 and the legal deed is anchored by its SHA3 fingerprint, keeping ownership

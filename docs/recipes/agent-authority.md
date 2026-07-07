@@ -18,27 +18,26 @@ signed transactions, the contract checks each action against the
 authority the owner granted, and revocation is a single transaction that
 takes effect immediately and cannot be walked back by the agent.
 
-An agent's authority is its cryptographic identity, and that raises the
-stakes on forgery. A forged agent identity is worse than a stolen
-password: it is an autonomous attacker operating with legitimate
-authority, at machine speed, across as many actions as its budget allows,
-before anyone reviews a single one. The signatures that carry that
-identity today (RSA, ECDSA) rest on math a quantum computer can break. An
-adversary who could forge them could impersonate an agent and wield
-everything it was trusted to do, drain its budget, and invoke its
-permissions. They could also forge the owner's grant or suppress a
-revocation, so the off switch stops working exactly when you need it.
+An agent's authority is its cryptographic identity, which is what makes
+forgery so dangerous here. A forged identity hands an attacker an
+autonomous operator running with legitimate authority, at machine speed,
+across as many actions as its budget allows, before anyone reviews a
+single one. The signatures that carry that identity today (RSA, ECDSA)
+rest on math a quantum computer can break. A quantum computer that breaks
+them lets an attacker impersonate the agent, drain its budget, and invoke
+its permissions, and forge the owner's key to widen the grant or suppress
+the revocation, so the off switch fails at the moment you reach for it.
 
-The stakes scale with what the agent is trusted to do. A support chatbot
-with a small budget is a contained loss; an agent wired into a defense
-network or a piece of critical infrastructure is not. Any of them whose
-authority rests on RSA or ECDSA is impersonable by anyone holding a
-cryptographically-relevant quantum computer, and the attacker does not
-break the model, they become the agent. That is why the authentication
-has to be post-quantum and the authority tightly scoped and instantly
-revocable.
+The damage scales with what the agent is trusted to do. A hijacked
+support chatbot on a small budget is a contained loss. A hijacked agent
+inside a defense network, a grid controller, or a settlement system is a
+catastrophe. In every case the attacker simply becomes the agent,
+inheriting whatever authority it was trusted with, with no need to touch
+the model itself. Post-quantum authentication keeps that identity
+unforgeable, and tight scoping with instant revocation limits how far any
+single agent's compromise can spread.
 
-This is not a problem for later. Post-quantum migration is mandated and
+The pressure is immediate. Post-quantum migration is mandated and
 underway now, agent keys already sit in logs, transcripts, and on public
 ledgers where "harvest now, forge later" collects them, and no one can
 rule out that a capable machine already exists and is simply not

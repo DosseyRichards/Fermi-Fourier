@@ -25,8 +25,8 @@ That assumption is what a quantum computer threatens. The signatures that
 authenticate today's systems (RSA, ECDSA) rest on math a quantum computer
 can break. An adversary who could forge those signatures could
 authenticate a fraudulent order, impersonate an officer's confirmation,
-or suppress a legitimate stand-down. This is not a problem for a later
-budget cycle. National security systems are already mandated to move to
+or suppress a legitimate stand-down. The pressure is immediate. National
+security systems are already mandated to move to
 post-quantum cryptography, because these platforms stay in service for
 decades (some strategic systems have run for half a century) and because
 "harvest now, forge later" means authentication material intercepted

@@ -6,7 +6,7 @@ multi-party process a real application needs: a vote, a shipment, a
 file's history.
 
 Each recipe opens with the plain-language problem and why post-quantum
-security is a requirement now, not a later upgrade, then gives you a
+security is a requirement today, then gives you a
 **complete, tested Fourier contract** and shows how your application
 drives it.
 
@@ -44,7 +44,7 @@ problem for later. NIST finalized its post-quantum standards in 2024,
 governments have set firm deadlines to pull RSA and elliptic curves out
 of critical systems, and that migration is happening now.
 
-Two things make the threat present rather than future. First, the attack
+Two things keep the threat in the present tense. First, the attack
 has already begun: an adversary can copy the public keys off any public
 ledger today and hold them until a capable quantum computer is in reach,
 a strategy known as **harvest now, forge later**. Nobody can prove such a
