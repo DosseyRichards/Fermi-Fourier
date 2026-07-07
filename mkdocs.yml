@@ -113,6 +113,7 @@ nav:
       - Tamper-proof file registry: recipes/file-registry.md
       - Real estate tokenization: recipes/real-estate.md
       - Nuclear command authorization: recipes/command-authority.md
+      - AI agent management: recipes/agent-authority.md
   - Language:
       - language/index.md
       - Contracts: language/contracts.md
