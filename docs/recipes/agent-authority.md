@@ -42,8 +42,9 @@ underway now, agent keys already sit in logs, transcripts, and on public
 ledgers where "harvest now, forge later" collects them, and no one can
 rule out that a capable machine already exists and is simply not
 announced. So every registration, permission change, and agent action
-here is a
-[post-quantum-signed transaction](index.md#why-fourier-contracts-are-quantum-proof-by-default).
+here runs on WaveLedger's
+[post-quantum stack](index.md#why-fourier-contracts-are-quantum-proof-by-default),
+quantum-resistant from its signatures to its hashing and keys.
 `caller()` is the agent's post-quantum authenticated identity, so "which
 agent did this, and was it authorized" cannot be forged even by an
 adversary who already has a quantum computer.

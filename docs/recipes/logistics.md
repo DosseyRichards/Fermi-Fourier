@@ -22,8 +22,8 @@ today's systems rest on math a large quantum computer can break, with
 the public keys needed to forge them already visible on-chain now. That
 would let an adversary **retroactively rewrite history**, inserting a
 handler who was never there or erasing one who was, long after the fact
-and with no way to undo it. So each handoff here is signed with a
-[post-quantum scheme](index.md#why-fourier-contracts-are-quantum-proof-by-default):
+and with no way to undo it. So each handoff here runs on WaveLedger's
+[post-quantum stack](index.md#why-fourier-contracts-are-quantum-proof-by-default):
 the current holder, and only the current holder, can pass custody on,
 and that authorization stays unforgeable even against an adversary who
 already has a quantum computer.
